@@ -39,8 +39,8 @@ is designed with such a birdge for these to be
 
 ### Supporting Documents
 
-| File                                               | Purpose                                           | Contents                                                                                                                                                    |
-| -------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[context-reference.md](./context-reference.md)** | Context and external References used as Resources | Breakdown of RFC Calendar standards and URLs to external resources                                                                                          |
-| **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for quick overview         | Data flow and System Overview diagramms                                                                                                                     |
-| **[event-examples.md](./event-examples.md)**       | Example Schemas                                   | Break down different event-types, calendars and such and provide specific examples of how Homeserver documents should look like (TODO: Schema is outdatedx) |
+| File                                               | Purpose                                           | Contents                                                                                                                        |
+| -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **[context-reference.md](./context-reference.md)** | Context and external References used as Resources | Breakdown of RFC Calendar standards and URLs to external resources                                                              |
+| **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for quick overview         | Data flow and System Overview diagramms                                                                                         |
+| **[event-examples.md](./event-examples.md)**       | Example Schemas                                   | Break down different event-types, calendars and such and provide specific examples of how Homeserver documents should look like |

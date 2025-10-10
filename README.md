@@ -1,8 +1,8 @@
 # Pubky iCalendar Integration Specification
 
-A comprehensive specification for integrating industry-standard iCalendar
+A specification for integrating industry-standard iCalendar
 protocols (RFC 5545, RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the
-Pubky ecosystem, enabling decentralized calendar functionality while maintaining
+Pubky ecosystem, enabling decentralized calendar functionality while maintaining possible
 compatibility with existing CalDAV clients and calendar standards.
 
 ## Background

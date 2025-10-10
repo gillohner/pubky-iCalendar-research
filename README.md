@@ -7,25 +7,27 @@ compatibility with existing CalDAV clients and calendar standards.
 
 ## Background
 
-This project researches how Events and Calendars can be implemented on Pubky
-infrastructure. The existing iCalendar standards and their extensions provide a
-robust foundation with comprehensive event management features. These standards
-have been extensively tested in real-world scenarios across diverse calendar
-applications, making them an ideal foundation for decentralized calendar
-systems.
+This project researches how Events and Calendars can be implemented on Pubky.
+The existing iCalendar standards and their extensions provide a robust
+foundation with comprehensive event management features. These standards have
+been extensively tested in real-world scenarios across diverse calendar
+applications, making them an ideal foundation for a decentralized calendar
+system through simple extensions.
 
 By building upon established RFC specifications, we can potentially enable
-seamless integration with existing calendar workflows while leveraging the
-benefits of Pubky's decentralized architecture. This research analyzes existing
-iCalendar standards, documents their applicability to the Pubky ecosystem, and
-identifies which specifications are most suitable for implementation - with
-consideration for future protocol expansions.
+seamless integration with existing calendar workflows while benefiting from
+Pubkys decentralization. This research analyzes existing iCalendar standards,
+documents their applicability to the Pubky ecosystem, and identifies which
+specifications are most suitable for implementation - with consideration for
+future protocol expansions.
 
 The Documentation includes mentions of a Caldav Bridge to implement Pubky based
 Calendar management in existing Calendar applications like Outlook, Thunderbird
 and such. For the prototype-phase there is no plan to actually implement this. I
 decided to document my ideas of how they could look like as the core structure
-is designed with such a birdge for these to be
+is designed with such a bridge in mind as making sure to have this in mind to at
+a later stage be able to implement it could enable the deeper integration into
+existing workflows mentioned before.
 
 ## 📋 Document Structure
 

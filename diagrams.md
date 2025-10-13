@@ -1,3 +1,181 @@
+# Diagrams
+
+## Full Prototype Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "User Layer"
+        U1[Event Creator]
+        U2[Event Attendee]
+        U3[Calendar Admin]
+    end
+
+    subgraph "Client Application - Next.js"
+        subgraph "Authentication"
+            AUTH["@synonymdev/pubky SDK"]
+            QR[QR Code Login]
+            RING[Pubky Ring Integration]
+        end
+        
+        subgraph "Discovery Pages"
+            ED["Event Discovery Page\nList/Calendar Views"]
+            CD["Calendar Discovery Page\nList View"]
+            FILTER["Filter Components\nTags/Location/Date"]
+        end
+        
+        subgraph "Overview Pages"
+            EO["Event Overview Page\nDetails/Map/Comments"]
+            CO["Calendar Overview Page\nList/Calendar Views"]
+        end
+        
+        subgraph "Creation & Edit"
+            ECM["Event Creation Modal\nForm + Image Upload"]
+            CCM["Calendar Creation Modal\nForm + Image Upload"]
+        end
+        
+        subgraph "UI Components - Tailwind CSS"
+            HEADER[Calendar/Event Header]
+            ELIST[Event List Cards]
+            ECAL[Event Calendar View]
+            LOC[Location Display]
+            OSM[OSM Map Integration]
+            TAGS[Pubky Tags]
+            ATT[Attendees Component]
+        end
+        
+        API[Nexus API Client]
+    end
+
+    subgraph "Pubky Infrastructure"
+        subgraph "Extended Nexus Indexer"
+            NI[pubky-nexus<br/>Calendar Extensions]
+            
+            subgraph "New Calendar Endpoints"
+                EP1[GET /calendars]
+                EP2[GET /calendars/:id]
+                EP3[GET /events]
+                EP4[GET /events/:id]
+                EP5[GET /calendars/:id/events]
+                EP6[GET /attendees]
+            end
+            
+            DB[(Neo4j Database)]
+        end
+        
+        subgraph "Homeservers"
+            HS1[User 1 Homeserver<br/>pubky://user1z123...]
+            HS2[User 2 Homeserver<br/>pubky://user2x456...]
+            HS3[User 3 Homeserver<br/>pubky://user3y789...]
+        end
+        
+        subgraph "Storage Structure"
+            CAL[/pub/pubky.app/calendars/]
+            EVT[/pub/pubky.app/events/]
+            ATD[/pub/pubky.app/attendees/]
+            FILES[/pub/pubky.app/files/]
+        end
+    end
+
+    subgraph "External Services"
+        OSMAPI[Nominatim OSM API<br/>Location Geocoding]
+    end
+
+    %% User Authentication Flow
+    U1 --> QR
+    U2 --> QR
+    U3 --> QR
+    QR --> AUTH
+    AUTH --> RING
+    
+    %% Discovery Flow
+    U1 --> ED
+    U1 --> CD
+    U2 --> ED
+    U3 --> CD
+    ED --> FILTER
+    CD --> FILTER
+    
+    %% Overview Flow
+    ED --> EO
+    CD --> CO
+    
+    %% Creation Flow
+    U1 --> ECM
+    U3 --> CCM
+    ECM --> AUTH
+    CCM --> AUTH
+    
+    %% Component Usage
+    ED --> ELIST
+    ED --> ECAL
+    EO --> HEADER
+    EO --> LOC
+    EO --> OSM
+    EO --> TAGS
+    EO --> ATT
+    CO --> HEADER
+    CO --> ELIST
+    CO --> ECAL
+    
+    %% API Communication
+    API --> EP1
+    API --> EP2
+    API --> EP3
+    API --> EP4
+    API --> EP5
+    API --> EP6
+    
+    ED --> API
+    CD --> API
+    EO --> API
+    CO --> API
+    FILTER --> API
+    
+    %% Nexus to Homeservers
+    NI -.Indexes.-> HS1
+    NI -.Indexes.-> HS2
+    NI -.Indexes.-> HS3
+    
+    %% Nexus Internal
+    EP1 --> DB
+    EP2 --> DB
+    EP3 --> DB
+    EP4 --> DB
+    EP5 --> DB
+    EP6 --> DB
+    
+    %% Homeserver Storage
+    HS1 --> CAL
+    HS1 --> EVT
+    HS1 --> ATD
+    HS1 --> FILES
+    HS2 --> CAL
+    HS2 --> EVT
+    HS2 --> ATD
+    HS3 --> CAL
+    HS3 --> EVT
+    
+    %% Write Operations
+    AUTH -.Writes jCal JSON.-> HS1
+    AUTH -.Writes jCal JSON.-> HS2
+    AUTH -.Writes jCal JSON.-> HS3
+    
+    %% External Services
+    OSM --> OSMAPI
+    
+    classDef userClass fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
+    classDef clientClass fill:#fff4e6,stroke:#ff9800,stroke-width:2px
+    classDef nexusClass fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef storageClass fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    classDef externalClass fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    
+    class U1,U2,U3 userClass
+    class AUTH,QR,RING,ED,CD,EO,CO,ECM,CCM,API,HEADER,ELIST,ECAL,LOC,OSM,TAGS,ATT,FILTER clientClass
+    class NI,EP1,EP2,EP3,EP4,EP5,EP6,DB nexusClass
+    class HS1,HS2,HS3,CAL,EVT,ATD,FILES storageClass
+    class OSMAPI externalClass
+```
+
 ## Architecture Overview
 
 ### System Overview

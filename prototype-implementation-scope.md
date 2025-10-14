@@ -45,11 +45,15 @@ for _all_ RFC extensions, extend Events to have multiple admins, ...
 
 - Set up local Environment (Set up Nexus locall, local Homeserver with example
   Documents to test indexing in development, etc)
-- Add new Pubky App Types to Nexus
+- Getting familiar with existing architecture
+- Add new Pubky App Types
 - Set up Indexing analog to other types
+- JCal Parsing logic
+- Testing of Endpoints
+- Endpoint-filters using PubkyAppTags
 
 ```
-Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how realistic this scope is.
+Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how realistic this scope is. Could potentially be shorter but making sure the integration is robust is a priority to me
 ```
 
 ### Calky PWA (~2 weeks)

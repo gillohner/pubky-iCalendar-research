@@ -27,9 +27,41 @@ for _all_ RFC extensions, extend Events to have multiple admins, ...
 - Tailwind CSS
 - ShadCN UI component Library (analog Franky)
 - Zustand for state management (Personally never used Zustand but as I know you
-  use it, it likely makes sense to use it as well)
+  use it, it likely makes sense to use it as well and get familiar with it)
 - Axios
 - Nominatim for OSM integration
+
+## Roadmap (High Level)
+
+### Research and Feature Mapping (1-2 weeks) - Done
+
+- Getting familiar with existing Pubky Apps
+- Research and document exisiting iCalendar Standards
+- Scope Prototype
+- Define minimal Nexus endpoints
+- Define new Homeserver Documents and Structure
+
+### Integrate basic Nexus Endpoints (~3 weeks)
+
+- Set up local Environment (Set up Nexus locall, local Homeserver with example
+  Documents to test indexing in development, etc)
+- Add new Pubky App Types to Nexus
+- Set up Indexing analog to other types
+
+```
+Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how realistic this scope is.
+```
+
+### Calky PWA (~2 weeks)
+
+- Set up new Project with outlined scope
+
+### Cleanup and more complex Indexing (~1 week)
+
+- Integrate OSM-Tag Based Indexing in Nexus for Events
+- Cleanup Project and update this Documentation for Handoff
+
+### Implement Frontend Application
 
 ## Core Features
 

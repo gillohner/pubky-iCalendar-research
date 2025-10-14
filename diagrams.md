@@ -51,12 +51,12 @@ graph TB
             NI[pubky-nexus<br/>Calendar Extensions]
             
             subgraph "New Calendar Endpoints"
-                EP1[GET /calendars]
-                EP2[GET /calendars/:id]
-                EP3[GET /events]
-                EP4[GET /events/:id]
-                EP5[GET /calendars/:id/events]
-                EP6[GET /attendees]
+                EP1[GET /vcalendars]
+                EP2[GET /vcalendars/:id]
+                EP3[GET /vevents]
+                EP4[GET /vevents/:id]
+                EP5[GET /vcalendars/:id/vevents]
+                EP6[GET /vattendees]
             end
             
             DB[(Neo4j Database)]
@@ -69,9 +69,9 @@ graph TB
         end
         
         subgraph "Storage Structure"
-            CAL[/pub/pubky.app/calendars/]
-            EVT[/pub/pubky.app/events/]
-            ATD[/pub/pubky.app/attendees/]
+            CAL[/pub/pubky.app/vcalendars/]
+            EVT[/pub/pubky.app/vevents/]
+            ATD[/pub/pubky.app/vattendees/]
             FILES[/pub/pubky.app/files/]
         end
     end

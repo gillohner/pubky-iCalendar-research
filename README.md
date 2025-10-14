@@ -1,8 +1,8 @@
 # Pubky iCalendar Integration Specification
 
-A specification for integrating industry-standard iCalendar
-protocols (RFC 5545, RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the
-Pubky ecosystem, enabling decentralized calendar functionality while maintaining possible
+A specification for integrating industry-standard iCalendar protocols (RFC 5545,
+RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the Pubky ecosystem,
+enabling decentralized calendar functionality while maintaining possible
 compatibility with existing CalDAV clients and calendar standards.
 
 ## Background
@@ -44,5 +44,5 @@ existing workflows mentioned before.
 | File                                               | Purpose                                           | Contents                                                                                                                        |
 | -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **[context-reference.md](./context-reference.md)** | Context and external References used as Resources | Breakdown of RFC Calendar standards and URLs to external resources                                                              |
-| **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for quick overview         | Data flow and System Overview diagramms                                                                                         |
+| **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for System overview        | Data flow and System Overview diagramms                                                                                         |
 | **[event-examples.md](./event-examples.md)**       | Example Schemas                                   | Break down different event-types, calendars and such and provide specific examples of how Homeserver documents should look like |

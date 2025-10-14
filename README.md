@@ -1,5 +1,12 @@
 # Pubky iCalendar Integration Specification
 
+```
+Info: After reviewing Nexus Documentation I believe my original approach
+of creating new PubkyAppX for Events, Calendars, Attendance and such was not
+consistent with the current Ecosystem and would've required unnecessary changes
+to Pubky Nexus. I have now updated the specs to be a new kind of PubkyAppPost. (v2.0 documents)
+```
+
 A specification for integrating industry-standard iCalendar protocols (RFC 5545,
 RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the Pubky ecosystem,
 enabling decentralized calendar functionality while maintaining compatibility
@@ -45,3 +52,6 @@ could enable deeper integration into existing workflows, as mentioned before.
 | **[context-reference.md](./context-reference.md)** | Context and external References used as Resources | Breakdown of RFC Calendar standards and URLs to external resources                                                              |
 | **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for System overview        | Data flow and System Overview diagramms                                                                                         |
 | **[event-examples.md](./event-examples.md)**       | Example Schemas                                   | Break down different event-types, calendars and such and provide specific examples of how Homeserver documents should look like |
+
+```
+```

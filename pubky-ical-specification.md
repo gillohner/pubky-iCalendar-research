@@ -633,8 +633,8 @@ feature expansion without breaking changes to the core protocol.
 
 For the MVP implementation, focus is set on the core schemas (VCalendar, VEvent,
 VAttendee, VAlarm) and basic Nexus aggregation. Advanced features can be layered
-on as the ecosystem matures and user needs become clearer. It is important to have
-an extensible base structure.
+on as the ecosystem matures and user needs become clearer. It is important to
+have an extensible base structure.
 
 ---
 

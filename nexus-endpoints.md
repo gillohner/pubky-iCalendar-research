@@ -32,10 +32,10 @@ specification.
 All Nexus endpoints return calendar components in jCal format (RFC 7265) with
 optional metadata. This ensures:
 
-- **Consistency**: Frontends handle parsing and formatting uniformly
-- **Extensibility**: New iCalendar properties are automatically supported
-- **Standards Compliance**: Direct mapping to/from iCalendar without data loss
-- **Frontend Flexibility**: UIs decide presentation logic, not the indexer
+- **Consistency**: Frontends handle parsing and formatting uniformly.
+- **Extensibility**: New iCalendar properties are automatically supported.
+- **Standards Compliance**: Direct mapping to/from iCalendar without data loss.
+- **Frontend Flexibility**: UIs decide presentation logic, not the indexer.
 
 ---
 
@@ -175,7 +175,7 @@ List all events for a specific calendar (aggregated from admin homeservers).
 | `start_before` | string  | -         | Filter events starting before this date (ISO 8601) |
 | `status`       | string  | -         | Filter by status (CONFIRMED, TENTATIVE, CANCELLED) |
 | `organizer`    | string  | -         | Filter by organizer pubky:// URI                   |
-| `location`     | string  | -         | Filter using OSM structured Location               |
+| `location`     | string  | -         | Filter using OSM structured location               |
 | `sort`         | string  | `dtstart` | Sort order (`dtstart`, `created`, `modified`)      |
 
 **Response**:
@@ -960,9 +960,9 @@ All calendar components are returned in jCal format (RFC 7265):
 
 - Component types: `vcalendar`, `vevent`, `attendee`, `valarm`
 - Property format: `[name, parameters_object, value_type, ...values]`
-- Parameters can be empty objects `{}` if no parameters exist
-- Multiple values are comma-separated or as additional array elements
-- Sub-components array is always present (empty `[]` if none)
+- Parameters can be empty objects `{}` if no parameters exist.
+- Multiple values are comma-separated or as additional array elements.
+- The sub-components array is always present (empty `[]` if none).
 
 ### Metadata Object
 
@@ -987,9 +987,9 @@ original iCalendar component:
 Metadata provides indexer-computed information that helps UIs make decisions
 without parsing jCal. For example:
 
-- Display "8 attendees" without parsing all attendee records
-- Sort/filter by creation time efficiently
-- Show parent context ("Bitcoin Meetup Zürich" in "Dezentralschweiz Meetups")
+- Display "8 attendees" without parsing all attendee records.
+- Sort/filter by creation time efficiently.
+- Show parent context ("Bitcoin Meetup Zürich" in "Dezentralschweiz Meetups").
 
 Frontends should prefer jCal data for display but can use metadata for
 performance optimizations and aggregated views.
@@ -1024,20 +1024,20 @@ Common status codes:
 
 Nexus indexes calendars by:
 
-1. Scanning all homeservers for `/pub/pubky.app/vcalendar/*` paths
-2. Extracting `x-pubky-admins` property from each calendar
-3. Building an index mapping calendar URIs to admin lists
-4. Computing metadata (event counts, attendee counts, timestamps)
+1. Scanning all homeservers for `/pub/pubky.app/vcalendar/*` paths.
+2. Extracting the `x-pubky-admins` property from each calendar.
+3. Building an index mapping calendar URIs to admin lists.
+4. Computing metadata (event counts, attendee counts, timestamps).
 
 ### Event Aggregation
 
 Nexus aggregates events for each calendar by:
 
-1. For each calendar, identify all admin pubky:// URIs from `x-pubky-admins`
-2. Scan each admin's homeserver for `/pub/pubky.app/vevent/*` paths
-3. Filter events where `x-pubky-calendar` matches the calendar URI
-4. Aggregate all matching events into the calendar's event collection
-5. Build temporal indexes for efficient date-range queries
+1. For each calendar, identify all admin pubky:// URIs from `x-pubky-admins`.
+2. Scan each admin's homeserver for `/pub/pubky.app/vevent/*` paths.
+3. Filter events where `x-pubky-calendar` matches the calendar URI.
+4. Aggregate all matching events into the calendar's event collection.
+5. Build temporal indexes for efficient date-range queries.
 
 **Example**:
 
@@ -1058,8 +1058,8 @@ Both events have x-pubky-calendar pointing to calendar 0033RCZXVEPNG
 Attendees and alarms are indexed globally:
 
 1. Scan all homeservers for `/pub/pubky.app/vattendee/*` and
-   `/pub/pubky.app/valarm/*`
-2. Extract `x-pubky-calendar` and `x-pubky-event` references
+   `/pub/pubky.app/valarm/*`.
+2. Extract `x-pubky-calendar` and `x-pubky-event` references.
 3. Build reverse indexes for efficient querying:
    - event → attendees mapping
    - event → alarms mapping
@@ -1114,10 +1114,10 @@ properties. The indexer doesn't impose formatting decisions.
 Metadata provides:
 
 - **Performance**: Aggregated counts (event_count, attendee_count) without
-  parsing child components
-- **Context**: Parent names (calendar_name, event_summary) for display in lists
+  parsing child components.
+- **Context**: Parent names (calendar_name, event_summary) for display in lists.
 - **Indexer State**: Timestamps (created_at, updated_at) track indexing, not
-  just component semantics
+  just component semantics.
 
 Metadata should **never** duplicate information in jCal. It augments with
 computed/contextual data.
@@ -1126,9 +1126,9 @@ computed/contextual data.
 
 Every component returns its `uri` field at the top level for:
 
-- **Direct Access**: Clients can construct URLs without parsing jCal
-- **Caching**: URI-based cache keys
-- **Relationships**: Reference components by URI in joins/links
+- **Direct Access**: Clients can construct URLs without parsing jCal.
+- **Caching**: URI-based cache keys.
+- **Relationships**: Reference components by URI in joins/links.
 
 The URI is also in jCal as the `uid` property, but top-level duplication
 improves ergonomics.

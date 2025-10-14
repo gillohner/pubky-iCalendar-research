@@ -23,7 +23,7 @@ them to support calendar collections, events, scheduling, and RSVP workflows.
 All calendar data uses the jCal JSON format (RFC 7265) as the native storage
 format, with pubky:// URLs for addressing users and resources.
 
-The design emphasizes simplicity and extensibility - the core specification is
+The design emphasizes simplicity and extensibility—the core specification is
 lean to facilitate MVP development, while the underlying RFC standards provide a
 path for future enhancements.
 
@@ -31,22 +31,22 @@ path for future enhancements.
 
 ## Background and Motivation
 
-Pubky homeservers provide decentralized identity-based content hosting where
+Pubky homeservers provide decentralized, identity-based content hosting where
 users maintain full control of their data. Integrating calendar functionality
 following established RFC standards enables:
 
 - **Interoperability**: Compatibility with existing calendar clients (Outlook,
-  Thunderbird, Apple Calendar) via potential CalDAV bridges
+  Thunderbird, Apple Calendar) via potential CalDAV bridges.
 - **Decentralization**: Users store their calendar components on their own
-  homeservers, eliminating dependency on centralized calendar services
+  homeservers, eliminating dependency on centralized calendar services.
 - **Social Calendaring**: Events become first-class social objects with
-  potential for tagging, comments, and Attendance aggregation
+  potential for tagging, comments, and attendance aggregation.
 - **Flexibility**: Support for public events, personal reminders, and various
-  participation models
+  participation models.
 - **Standards Compliance**: Leveraging decades of calendar protocol development
-  and tooling
+  and tooling.
 - **Gradual Expansion**: Existing RFC standards are designed to be extendable,
-  allowing us to start simple and expand functionality over time
+  allowing us to start simple and expand functionality over time.
 
 The Nexus indexer aggregates calendar components from user homeservers, enabling
 discovery and feed generation similar to other pubky-app content types. Calendar
@@ -135,8 +135,8 @@ aggregating and relating components based on their reference properties:
 - **Event ID**: Timestamp-based (13-character Crockford Base32)
 - **Attendee ID**: Timestamp-based (13-character Crockford Base32)
 - **Alarm ID**: Timestamp-based (13-character Crockford Base32)
-- All files stored as `.json` with jCal structure inside
-- UID preserved within jCal for iCalendar compatibility
+- All files are stored as `.json` with jCal structure inside.
+- UID is preserved within jCal for iCalendar compatibility.
 
 ### Component Relationships
 
@@ -154,7 +154,7 @@ Components reference each other through pubky:// URIs:
 pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG
 pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG
 pubky://hal/pub/pubky.app/vevent/0033TD0XVEPNG
-pubky://alice/pub/pubky.app/vattendee/0033 UCZXVEPNG
+pubky://alice/pub/pubky.app/vattendee/0033UCZXVEPNG
 pubky://bob/pub/pubky.app/valarm/0033VCZXVEPNG
 ```
 
@@ -183,7 +183,7 @@ Nexus aggregates calendar components based on admin relationships:
 Calendar ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
 
-**UID Generation Strategy**: Calendar UIDs follow standardized format:
+**UID Generation Strategy**: Calendar UIDs follow a standardized format:
 
 ```
 pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
@@ -233,13 +233,13 @@ pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
 
 **Field Descriptions:**
 
-- `uid` (required): Globally unique identifier for the calendar
-- `name` (required): Human-readable calendar name
-- `description` (optional): Calendar description
-- `color` (optional): Hex color code for calendar theme
-- `image` (optional): pubky:// URI to calendar logo/image
+- `uid` (required): Globally unique identifier for the calendar.
+- `name` (required): Human-readable calendar name.
+- `description` (optional): Calendar description.
+- `color` (optional): Hex color code for calendar theme.
+- `image` (optional): pubky:// URI to calendar logo/image.
 - `categories` (optional): Multi-value classification tags (TODO: Remove and
-  replace by PubkyAppTags or not?)
+  replace with PubkyAppTags or not?)
 - `x-pubky-admins` (required): Multi-value property listing pubky:// URIs of
   users who can add events to this calendar
 
@@ -252,7 +252,7 @@ pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
 Event ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
 
-**UID Generation Strategy**: Event UIDs follow standardized format:
+**UID Generation Strategy**: Event UIDs follow a standardized format:
 
 ```
 pubky://<pubky_userid>/pub/pubky.app/vevent/<event_id>
@@ -312,18 +312,18 @@ pubky://<pubky_userid>/pub/pubky.app/vevent/<event_id>
 
 **Field Descriptions:**
 
-- `uid` (required): Globally unique identifier for the event
-- `dtstamp` (required): Timestamp of event creation/modification
-- `dtstart` (required): Event start time (with optional timezone)
-- `dtend` (optional): Event end time
-- `summary` (required): Event title/name
-- `description` (optional): Detailed event description
-- `location` (optional): Event location text
-- `geo` (optional): Geographic coordinates [latitude, longitude]
-- `organizer` (required): pubky:// URI of event organizer
-- `x-pubky-calendar` (required): pubky:// URI of parent calendar
-- `categories` (optional): Multi-value classification tags
-- `status` (optional): Event status (CONFIRMED, TENTATIVE, CANCELLED)
+- `uid` (required): Globally unique identifier for the event.
+- `dtstamp` (required): Timestamp of event creation/modification.
+- `dtstart` (required): Event start time (with optional timezone).
+- `dtend` (optional): Event end time.
+- `summary` (required): Event title/name.
+- `description` (optional): Detailed event description.
+- `location` (optional): Event location text.
+- `geo` (optional): Geographic coordinates [latitude, longitude].
+- `organizer` (required): pubky:// URI of event organizer.
+- `x-pubky-calendar` (required): pubky:// URI of parent calendar.
+- `categories` (optional): Multi-value classification tags.
+- `status` (optional): Event status (CONFIRMED, TENTATIVE, CANCELLED).
 
 **Recurrence Support**: Events can include `rrule` property for recurring
 patterns (RFC 5545 Section 3.3.10):
@@ -436,12 +436,12 @@ Path: `pubky://satoshi/pub/pubky.app/vevent/0033TCZXVEPNG`
 
 Key points for overrides:
 
-- Override events must share the same uid as the master recurring event
+- Override events must share the same uid as the master recurring event.
 - The recurrence-id value must match the original occurrence time (October 16th
-  at 19:00, even though the start time is moved to 20:00)
-- Override events are stored as separate files on the homeserver
+  at 19:00, even if the start time is moved to 20:00).
+- Override events are stored as separate files on the homeserver.
 - Any property can be modified in the override (time, location, summary,
-  attendees, etc.)
+  attendees, etc.).
 - Nexus aggregates both the master event and override instances when querying
   the calendar
 
@@ -501,15 +501,15 @@ can create an attendee record for any event.
 
 **Field Descriptions:**
 
-- `uid` (required): Globally unique identifier for the attendance record
-- `dtstamp` (required): Timestamp of RSVP creation/modification
+- `uid` (required): Globally unique identifier for the attendance record.
+- `dtstamp` (required): Timestamp of RSVP creation/modification.
 - `attendee` (required): Attendee details with parameters:
   - `cn`: Common name (display name)
   - `role`: REQ-PARTICIPANT, OPT-PARTICIPANT, NON-PARTICIPANT, CHAIR
   - `partstat`: NEEDS-ACTION, ACCEPTED, DECLINED, TENTATIVE, DELEGATED
-  - `rsvp`: TRUE/FALSE (whether response is requested)
-- `x-pubky-calendar` (required): pubky:// URI of parent calendar
-- `x-pubky-event` (required): pubky:// URI of the event
+  - `rsvp`: TRUE/FALSE (whether a response is requested)
+- `x-pubky-calendar` (required): pubky:// URI of parent calendar.
+- `x-pubky-event` (required): pubky:// URI of the event.
 
 ---
 
@@ -558,14 +558,14 @@ notifications.
 
 **Field Descriptions:**
 
-- `uid` (required): Globally unique identifier for the alarm
-- `action` (required): AUDIO, DISPLAY, EMAIL (alarm type)
+- `uid` (required): Globally unique identifier for the alarm.
+- `action` (required): AUDIO, DISPLAY, EMAIL (alarm type).
 - `trigger` (required): When to trigger (duration relative to START/END, or
-  absolute date-time)
-- `description` (optional): Alarm message text
-- `x-pubky-calendar` (required): pubky:// URI of parent calendar
+  absolute date-time).
+- `description` (optional): Alarm message text.
+- `x-pubky-calendar` (required): pubky:// URI of parent calendar.
 - `x-pubky-event` (optional): pubky:// URI of specific event (if alarm is
-  event-specific)
+  event-specific).
 
 **Trigger Examples**:
 
@@ -631,9 +631,9 @@ requiring their immediate implementation. Calendar and event components already
 include standard RFC properties that support these extensions, allowing gradual
 feature expansion without breaking changes to the core protocol.
 
-For the MVP implementation focus is set on the core schemas (VCalendar, VEvent,
+For the MVP implementation, focus is set on the core schemas (VCalendar, VEvent,
 VAttendee, VAlarm) and basic Nexus aggregation. Advanced features can be layered
-on as the ecosystem matures and user needs become clearer. Important is to have
+on as the ecosystem matures and user needs become clearer. It is important to have
 an extensible base structure.
 
 ---

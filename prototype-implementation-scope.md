@@ -2,22 +2,22 @@
 
 ## Executive Summary
 
-The Goal is to implement a first Proof of Concept application based on the
+The goal is to implement a first proof-of-concept application based on the
 outlined specification. The main objective is to implement the minimal Nexus
-Endpoints and have a frontend application display the aggregated feeds to be
-able to create public Events like Bitcoin Meetups using the "iCal on Pubky"
+endpoints and have a frontend application display the aggregated feeds to
+enable the creation of public events like Bitcoin Meetups using the "iCal on Pubky"
 standard.
 
-This should serve as a base to extend Events/Calendars to implement more
-functionalities at a later stage. This can include but is not limited to a
-CalDAV bridge, implement shareable encrypted private Calendars/Events, support
-for _all_ RFC extensions, extend Events to have multiple admins, ...
+This should serve as a base to extend events/calendars and implement more
+functionality at a later stage. This can include, but is not limited to, a
+CalDAV bridge, shareable encrypted private calendars/events, support
+for _all_ RFC extensions, extending events to have multiple admins, etc.
 
 ## Notes
 
-- Feature set taken from iCal standards is defined in other documents with exact
-  details possibly slightly changing throughout prototype development.
-- A Diagram outlining the Prototype Architecture is present in
+- The feature set taken from iCal standards is defined in other documents, with exact
+  details possibly changing slightly throughout prototype development.
+- A diagram outlining the prototype architecture is present in
   [diagrams.md](./diagrams.md#full-prototype-architecture-overview)
 
 ## Technology Stack
@@ -25,8 +25,8 @@ for _all_ RFC extensions, extend Events to have multiple admins, ...
 - Node.js
 - Next.js
 - Tailwind CSS
-- ShadCN UI component Library (analog Franky)
-- Zustand for state management (Personally never used Zustand but as I know you
+- ShadCN UI component library (analog Franky)
+- Zustand for state management (I have never used Zustand personally, but since I know you
   use it, it likely makes sense to use it as well and get familiar with it)
 - Axios
 - Nominatim for OSM integration
@@ -35,35 +35,35 @@ for _all_ RFC extensions, extend Events to have multiple admins, ...
 
 ### Research and Feature Mapping (1-2 weeks) - Done
 
-- Getting familiar with existing Pubky Apps
-- Research and document exisiting iCalendar Standards
-- Scope Prototype
+- Get familiar with existing Pubky Apps
+- Research and document existing iCalendar standards
+- Scope prototype
 - Define minimal Nexus endpoints
-- Define new Homeserver Documents and Structure
+- Define new homeserver documents and structure
 
-### Integrate basic Nexus Endpoints (~3 weeks)
+### Integrate Basic Nexus Endpoints (~3 weeks)
 
-- Set up local Environment (Set up Nexus locall, local Homeserver with example
-  Documents to test indexing in development, etc)
-- Getting familiar with existing architecture
-- Add new Pubky App Types
-- Set up Indexing analog to other types
-- JCal Parsing logic
-- Testing of Endpoints
-- Endpoint-filters using PubkyAppTags
+- Set up local environment (set up Nexus locally, local homeserver with example
+  documents to test indexing in development, etc.)
+- Get familiar with existing architecture
+- Add new Pubky app types
+- Set up indexing analogous to other types
+- JCal parsing logic
+- Testing of endpoints
+- Endpoint filters using PubkyAppTags
 
 ```
-Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how realistic this scope is. Could potentially be shorter but making sure the integration is robust is a priority to me
+Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how realistic this scope is. It could potentially be shorter, but making sure the integration is robust is a priority for me.
 ```
 
 ### Calky PWA (~2 weeks)
 
-- Set up new Project with outlined scope
+- Set up new project with outlined scope
 
-### Cleanup and more complex Indexing (~1 week)
+### Cleanup and More Complex Indexing (~1 week)
 
-- Integrate OSM-Tag Based Indexing in Nexus for Events
-- Cleanup Project and update this Documentation for Handoff
+- Integrate OSM-tag-based indexing in Nexus for events
+- Clean up project and update this documentation for handoff
 
 ### Implement Frontend Application
 
@@ -71,114 +71,112 @@ Note: Personal unfamiliarity with Rust and Nexus makes it hard to know how reali
 
 ### Discovery Pages
 
-Both the Event and Calendar Discovery pages will have a similar layout, sharing
-dynamically adjusted components between each other. At the top of the page will
-be a filter/search card where users can limit the output of Events/Calendars
-being displayed by Tags, Title, Location and such.
+Both the event and calendar discovery pages will have a similar layout, sharing
+dynamically adjusted components. At the top of the page will
+be a filter/search card where users can limit the output of events/calendars
+being displayed by tags, title, location, and so on.
 
 #### Event Discovery
 
-The Events Discovery page will have 2 different views. Either card-based where
-the Image (Calendar-Color if none is set) is shown on top with the Metadata
-being displayed below.
+The events discovery page will have two different views: either card-based, where
+the image (calendar color if none is set) is shown on top with the metadata
+displayed below, or a calendar view, where events are displayed based on calendar colors.
 
-Or a Calendar-View where based on Calendar colors Events are being displayed.
-
-Similar to how Meetup.com does it on community-pages:
+Similar to how Meetup.com does it on community pages:
 ![List/Calendar meetup.com](images/screenshots/meetupcom/list_calendar_toggle.png)
 
 ![List/Calendar meetup.com](images/screenshots/meetupcom/calendar_overview.png "")
 
-- Recurring Events are rendered for each date inside of the list and calendar
-  views. With overrides being specific.
+- Recurring events are rendered for each date inside the list and calendar
+  views, with overrides being specific.
 
 ##### Filter Card Options
 
 | Filter              | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
-| Text-Search         | Search through all metadata                                                 |
-| Structured Location | Allow limiting to a Radius or Exact Cities based on Structure location tags |
-| Pubky Tags          | Limit to PubkyAppTags that users assigned to Event                          |
-| Date Range          | Limit to events between a certain date range. Have a default set from today |
+| Text Search         | Search through all metadata                                                 |
+| Structured Location | Limit to a radius or exact cities based on structured location tags         |
+| Pubky Tags          | Limit to PubkyAppTags that users assigned to events                         |
+| Date Range          | Limit to events between certain dates. Default is set from today            |
 | ...                 | Extend based on needs                                                       |
 
 #### Calendar Discovery
 
-Calendar Discovery will only have a List output and will be focused on finding
-different Calendars.
+Calendar discovery will only have a list output and will be focused on finding
+different calendars.
 
 ##### Filter Card Options
 
 | Filter          | Description                                             |
 | --------------- | ------------------------------------------------------- |
-| Text-Search     | Search through all metadata                             |
-| Pubky Tags      | Limit to PubkyAppTags that users assigned to Event      |
-| Upcoming Events | Only show Calendars with upcoming Events. Default: True |
+| Text Search     | Search through all metadata                             |
+| Pubky Tags      | Limit to PubkyAppTags that users assigned to events     |
+| Upcoming Events | Only show calendars with upcoming events. Default: True |
 | ...             | Extend based on needs                                   |
 
 ### Overview Pages
 
-Overview Pages will follow a Card-Based components approach. This allows to
-easily extend more fields into the standard and easily dinamically render
-optional fields.
+Overview pages will follow a card-based component approach. This allows
+easy extension of more fields into the standard and enables dynamic rendering
+of optional fields.
 
-If the creator of Calendar/Event is looking at one of their own Documents there
-will be an edit-button in top right. This will open the same modal (pre-filled)
-as when creating a new Calendar/Event.
+If the creator of a calendar/event is viewing one of their own documents, there
+will be an edit button in the top right. This will open the same modal (pre-filled)
+as when creating a new calendar/event.
 
-#### Calendar Overview:
+#### Calendar Overview
 
-Have a list/calendar view. Similar to how meetup.com does it (Reuse same
-components as in Event Overview but only outputting events of single Calendars):
+Have a list/calendar view, similar to how Meetup.com does it (reuse the same
+components as in event overview, but only output events of a single calendar):
 
-- Recurring Events are rendered for each date inside of the list.
-- Calendar Metadata is displayed at the top
+- Recurring events are rendered for each date inside the list.
+- Calendar metadata is displayed at the top.
 
-#### Event Overview:
+#### Event Overview
 
-- Page to view a single Event
-- Location OSM Map integration => linking to Apple Maps, Google Maps, OSM
-  - Show Bitcoin Payment tags
+- Page to view a single event
+- Location OSM map integration, linking to Apple Maps, Google Maps, OSM
+  - Show Bitcoin payment tags
   - Example here:
     https://meetstr.com/event/naddr1qvzqqqrukvpzpzd4ye7z7x886as20jpf8xw46rdfywmg04f75f4xl566wu8entspqqy9yj63xyekx3ryaylwxs
 
     ![Location Card Meetstr](images/screenshots/meetstr/location_card.png)
-- Comments, Tags using PubkyAppPost and PubkyAppTags
+- Comments, tags using PubkyAppPost and PubkyAppTags
 
-### Lower priority features
+### Lower Priority Features
 
-Once above Features are implemented extending the Client with following would
+Once the above features are implemented, extending the client with the following would
 make sense:
 
-- Overview Page for own Calendars/Events
-- Page showing own Attendance and history
-- Implement VAlarm functionalities for notifications per-user.
-  (Android/iOS/Browser Push notifications, Email notifications, Messenger-Alarm,
-  ...)
+- Overview page for own calendars/events
+- Page showing own attendance and history
+- Implement VAlarm functionalities for notifications per user
+  (Android/iOS/browser push notifications, email notifications, messenger alarm,
+  etc.)
 
-### Event/Calendar creation Modals
+### Event/Calendar Creation Modals
 
-To create a new Event or Calendar users should be able to open a Modal. The same
-Modals will be used when editing an Event. The Form will include Fields to
-create all the required Metadata outlined inside of the seperately documented
-specification for VCalendar and VEvent as well as an Image upload creating a
-PubkyAppFile. Similar approach to how it is done in meetstr at the moment.
+To create a new event or calendar, users should be able to open a modal. The same
+modals will be used when editing an event. The form will include fields to
+create all the required metadata outlined in the separately documented
+specification for VCalendar and VEvent, as well as an image upload creating a
+PubkyAppFile. This is a similar approach to how it is done in Meetstr at the moment.
 
 ### Main Components
 
 ```
-Note: Will be extended further and divided into sub-components during Development.
+Note: Will be extended further and divided into sub-components during development.
 ```
 
 | Name                     | Description                                                                                                                                                                                             |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Calendar/Event Header    | Header for a Calendar with Image, Summary, Host, Admins, Categories ... - Subcomponents are dinamically rendered based on if it's a calendar/event and what Metadata is present                         |
-| Event List               | Card based list to display Events. (Supports single calendar or multiple as input). Clicking on an Event will open the Event detail page                                                                |
-| Event Calendar           | Calendar-Style display of Events. (Supports single calendar or multiple as input). Clicking on an Event will open the Event detail page                                                                 |
-| Location display         | Card displaying a text-based location                                                                                                                                                                   |
-| OSM Location display     | Card displaying a structured location using OSM (Nominatim API) - Displays payment possibility in Bitcoin                                                                                               |
-| iCal Metadata components | Simple Card Components for other Metadata optionalities in iCal format                                                                                                                                  |
-| Pubky Tags               | Show Tags like Pubky.app                                                                                                                                                                                |
-| Attendees                | Component rendering attendees of an Event with their respective status => Invitng attendees to an Event will not be implemented yet in Event creation. Could be added with exisitng tags in the future. |
-| Event Creation Modal     | Form to create a new Event with Image Upload and Metadata input                                                                                                                                         |
-| Calendar Creation Modal  | Form to create a new Calendar with Image Upload and Metadata input                                                                                                                                      |
+| Calendar/Event Header    | Header for a calendar with image, summary, host, admins, categories, etc. Subcomponents are dynamically rendered based on whether it's a calendar/event and what metadata is present                    |
+| Event List               | Card-based list to display events (supports single calendar or multiple as input). Clicking on an event will open the event detail page                                                                |
+| Event Calendar           | Calendar-style display of events (supports single calendar or multiple as input). Clicking on an event will open the event detail page                                                                 |
+| Location Display         | Card displaying a text-based location                                                                                                                                                                   |
+| OSM Location Display     | Card displaying a structured location using OSM (Nominatim API) - displays payment possibility in Bitcoin                                                                                               |
+| iCal Metadata Components | Simple card components for other optional metadata in iCal format                                                                                                                                       |
+| Pubky Tags               | Show tags like Pubky.app                                                                                                                                                                                |
+| Attendees                | Component rendering attendees of an event with their respective status. Inviting attendees to an event will not be implemented yet in event creation. Could be added with existing tags in the future.   |
+| Event Creation Modal     | Form to create a new event with image upload and metadata input                                                                                                                                         |
+| Calendar Creation Modal  | Form to create a new calendar with image upload and metadata input                                                                                                                                      |

@@ -2,32 +2,31 @@
 
 A specification for integrating industry-standard iCalendar protocols (RFC 5545,
 RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the Pubky ecosystem,
-enabling decentralized calendar functionality while maintaining possible
-compatibility with existing CalDAV clients and calendar standards.
+enabling decentralized calendar functionality while maintaining compatibility
+with existing CalDAV clients and calendar standards.
 
 ## Background
 
-This project researches how Events and Calendars can be implemented on Pubky.
+This project researches how events and calendars can be implemented on Pubky.
 The existing iCalendar standards and their extensions provide a robust
 foundation with comprehensive event management features. These standards have
 been extensively tested in real-world scenarios across diverse calendar
-applications, making them an ideal foundation for a decentralized calendar
-system through simple extensions.
+applications, making them an ideal basis for a decentralized calendar system
+with simple extensions.
 
 By building upon established RFC specifications, we can potentially enable
 seamless integration with existing calendar workflows while benefiting from
-Pubkys decentralization. This research analyzes existing iCalendar standards,
+Pubky's decentralization. This research analyzes existing iCalendar standards,
 documents their applicability to the Pubky ecosystem, and identifies which
-specifications are most suitable for implementation - with consideration for
+specifications are most suitable for implementation—with consideration for
 future protocol expansions.
 
-The Documentation includes mentions of a Caldav Bridge to implement Pubky based
-Calendar management in existing Calendar applications like Outlook, Thunderbird
-and such. For the prototype-phase there is no plan to actually implement this. I
-decided to document my ideas of how they could look like as the core structure
-is designed with such a bridge in mind as making sure to have this in mind to at
-a later stage be able to implement it could enable the deeper integration into
-existing workflows mentioned before.
+The documentation includes mentions of a CalDAV bridge to implement Pubky-based
+calendar management in existing calendar applications like Outlook or
+Thunderbird. For the prototype phase, there is no plan to actually implement
+this. I decided to document my ideas of how it could look, as the core structure
+is designed with such a bridge in mind. Keeping this in mind for later stages
+could enable deeper integration into existing workflows, as mentioned before.
 
 ## 📋 Document Structure
 

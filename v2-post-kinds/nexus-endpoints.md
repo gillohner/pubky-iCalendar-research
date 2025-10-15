@@ -125,32 +125,32 @@ List all calendar posts across the network.
 
 ```json
 [
-    {
-        "details": {
-            "id": "0033RCZXVEPNG",
-            "author": "satoshi",
-            "content": "[\"vcalendar\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG\"],[\"name\",{},\"text\",\"Dezentralschweiz Meetups\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://adam-back\"],...],[]]",
-            "kind": "calendar",
-            "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
-            "attachments": [
-                "pubky://satoshi/pub/pubky.app/files/0033RCZXVEPNG"
-            ],
-            "indexed_at": 1727785200000000
-        },
-        "counts": {
-            "replies": 12,
-            "tags": 2,
-            "unique_tags": 2,
-            "reposts": 0
-        },
-        "tags": [],
-        "relationships": {
-            "replied": null,
-            "reposted": null,
-            "mentioned": []
-        },
-        "bookmark": null
-    }
+  {
+    "details": {
+      "id": "0033RCZXVEPNG",
+      "author": "satoshi",
+      "content": "[\"vcalendar\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG\"],[\"name\",{},\"text\",\"Dezentralschweiz Meetups\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://adam-back\"],...],[]]",
+      "kind": "calendar",
+      "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
+      "attachments": [
+        "pubky://satoshi/pub/pubky.app/files/0033RCZXVEPNG"
+      ],
+      "indexed_at": 1727785200000000
+    },
+    "counts": {
+      "replies": 12,
+      "tags": 2,
+      "unique_tags": 2,
+      "reposts": 0
+    },
+    "tags": [],
+    "relationships": {
+      "replied": null,
+      "reposted": null,
+      "mentioned": []
+    },
+    "bookmark": null
+  }
 ]
 ```
 
@@ -221,29 +221,29 @@ indexed `dtstart`/`dtend` properties.
 
 ```json
 [
-    {
-        "details": {
-            "id": "0033SCZXVEPNG",
-            "author": "satoshi",
-            "content": "[\"vevent\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG\"],[\"summary\",{},\"text\",\"Bitcoin Meetup Zürich\"],...],[]]",
-            "kind": "event",
-            "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-            "indexed_at": 1727270200000000
-        },
-        "counts": {
-            "replies": 3,
-            "tags": 5,
-            "unique_tags": 3,
-            "reposts": 0
-        },
-        "tags": [],
-        "relationships": {
-            "replied": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
-            "reposted": null,
-            "mentioned": []
-        },
-        "bookmark": null
-    }
+  {
+    "details": {
+      "id": "0033SCZXVEPNG",
+      "author": "satoshi",
+      "content": "[\"vevent\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG\"],[\"summary\",{},\"text\",\"Bitcoin Meetup Zürich\"],...],[]]",
+      "kind": "event",
+      "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+      "indexed_at": 1727270200000000
+    },
+    "counts": {
+      "replies": 3,
+      "tags": 5,
+      "unique_tags": 3,
+      "reposts": 0
+    },
+    "tags": [],
+    "relationships": {
+      "replied": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
+      "reposted": null,
+      "mentioned": []
+    },
+    "bookmark": null
+  }
 ]
 ```
 
@@ -364,23 +364,23 @@ List all calendars where the current user is owner or admin.
 
 ```json
 {
-    "calendars": [
-        {
-            "id": "0033RCZXVEPNG",
-            "author": "satoshi",
-            "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
-            "role": "owner",
-            "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG"
-        },
-        {
-            "id": "0033XCZXVEPNG",
-            "author": "alice",
-            "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
-            "role": "admin",
-            "uri": "pubky://alice/pub/pubky.app/posts/0033XCZXVEPNG"
-        }
-    ],
-    "total": 2
+  "calendars": [
+    {
+      "id": "0033RCZXVEPNG",
+      "author": "satoshi",
+      "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
+      "role": "owner",
+      "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG"
+    },
+    {
+      "id": "0033XCZXVEPNG",
+      "author": "alice",
+      "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
+      "role": "admin",
+      "uri": "pubky://alice/pub/pubky.app/posts/0033XCZXVEPNG"
+    }
+  ],
+  "total": 2
 }
 ```
 
@@ -404,11 +404,11 @@ replies:
 
 ```json
 {
-    "content": "Looking forward to this meetup!",
-    "kind": "short",
-    "parent": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-    "embed": null,
-    "attachments": null
+  "content": "Looking forward to this meetup!",
+  "kind": "short",
+  "parent": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+  "embed": null,
+  "attachments": null
 }
 ```
 
@@ -416,9 +416,9 @@ replies:
 
 ```json
 {
-    "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-    "label": "bitcoin",
-    "created_at": 1727785200000000
+  "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+  "label": "bitcoin",
+  "created_at": 1727785200000000
 }
 ```
 
@@ -426,8 +426,8 @@ replies:
 
 ```json
 {
-    "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-    "created_at": 1727785200000000
+  "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+  "created_at": 1727785200000000
 }
 ```
 
@@ -1184,28 +1184,28 @@ pub enum PubkyAppPostKind {
 
 ```javascript
 const calendar = {
-    content: JSON.stringify([
-        "vcalendar",
-        [
-            ["prodid", {}, "text", "-//Pubky//Pubky Calendar 1.0//EN"],
-            ["version", {}, "text", "2.0"],
-            [
-                "uid",
-                {},
-                "text",
-                `pubky://${userId}/pub/pubky.app/posts/${calendarId}`,
-            ],
-            ["name", {}, "text", "My Bitcoin Events"],
-            ["color", {}, "text", "#F7931A"],
-            ["x-pubky-admin", {}, "uri", "pubky://hal"],
-            ["x-pubky-admin", {}, "uri", "pubky://adam-back"],
-        ],
-        [],
-    ]),
-    kind: "calendar",
-    parent: null,
-    embed: null,
-    attachments: [],
+  content: JSON.stringify([
+    "vcalendar",
+    [
+      ["prodid", {}, "text", "-//Pubky//Pubky Calendar 1.0//EN"],
+      ["version", {}, "text", "2.0"],
+      [
+        "uid",
+        {},
+        "text",
+        `pubky://${userId}/pub/pubky.app/posts/${calendarId}`,
+      ],
+      ["name", {}, "text", "My Bitcoin Events"],
+      ["color", {}, "text", "#F7931A"],
+      ["x-pubky-admin", {}, "uri", "pubky://hal"],
+      ["x-pubky-admin", {}, "uri", "pubky://adam-back"],
+    ],
+    [],
+  ]),
+  kind: "calendar",
+  parent: null,
+  embed: null,
+  attachments: [],
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${calendarId}`, calendar);
@@ -1230,30 +1230,30 @@ await pubkyClient.put(`/pub/pubky.app/posts/${calendarId}`, calendar);
 
 ```javascript
 const event = {
-    content: JSON.stringify([
-        "vevent",
-        [
-            [
-                "uid",
-                {},
-                "text",
-                `pubky://${userId}/pub/pubky.app/posts/${eventId}`,
-            ],
-            [
-                "dtstart",
-                { "tzid": "Europe/Zurich" },
-                "date-time",
-                "2025-10-20T19:00:00",
-            ],
-            ["summary", {}, "text", "Bitcoin Meetup Zürich"],
-            ["organizer", { "cn": "Hal" }, "cal-address", `pubky://${userId}`],
-        ],
-        [],
-    ]),
-    kind: "event",
-    parent: `pubky://satoshi/pub/pubky.app/posts/${calendarId}`,
-    embed: null,
-    attachments: [],
+  content: JSON.stringify([
+    "vevent",
+    [
+      [
+        "uid",
+        {},
+        "text",
+        `pubky://${userId}/pub/pubky.app/posts/${eventId}`,
+      ],
+      [
+        "dtstart",
+        { "tzid": "Europe/Zurich" },
+        "date-time",
+        "2025-10-20T19:00:00",
+      ],
+      ["summary", {}, "text", "Bitcoin Meetup Zürich"],
+      ["organizer", { "cn": "Hal" }, "cal-address", `pubky://${userId}`],
+    ],
+    [],
+  ]),
+  kind: "event",
+  parent: `pubky://satoshi/pub/pubky.app/posts/${calendarId}`,
+  embed: null,
+  attachments: [],
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${eventId}`, event);
@@ -1264,32 +1264,32 @@ await pubkyClient.put(`/pub/pubky.app/posts/${eventId}`, event);
 
 ```javascript
 const attendee = {
-    content: JSON.stringify([
+  content: JSON.stringify([
+    "attendee",
+    [
+      [
+        "uid",
+        {},
+        "text",
+        `pubky://${userId}/pub/pubky.app/posts/${attendeeId}`,
+      ],
+      [
         "attendee",
-        [
-            [
-                "uid",
-                {},
-                "text",
-                `pubky://${userId}/pub/pubky.app/posts/${attendeeId}`,
-            ],
-            [
-                "attendee",
-                {
-                    "cn": "Alice",
-                    "partstat": "ACCEPTED",
-                    "rsvp": "TRUE",
-                },
-                "cal-address",
-                `pubky://${userId}`,
-            ],
-        ],
-        [],
-    ]),
-    kind: "attendee",
-    parent: `pubky://satoshi/pub/pubky.app/posts/${eventId}`,
-    embed: null,
-    attachments: null,
+        {
+          "cn": "Alice",
+          "partstat": "ACCEPTED",
+          "rsvp": "TRUE",
+        },
+        "cal-address",
+        `pubky://${userId}`,
+      ],
+    ],
+    [],
+  ]),
+  kind: "attendee",
+  parent: `pubky://satoshi/pub/pubky.app/posts/${eventId}`,
+  embed: null,
+  attachments: null,
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${attendeeId}`, attendee);

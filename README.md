@@ -5,22 +5,23 @@
 This repository now documents **two different approaches** for implementing
 calendar functionality in Pubky:
 
-### **[V1: Separate Types](v1-separate-types/)** - Original Specification
+### **[V1: Separate Types](v1-separate-types/README.md)**
 
 Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee` types
 with separate storage paths. Provides strong type safety but requires more
 implementation work.
 
-### **[V2: Post Kinds](v2-post-kinds/)** - Current Specification
+### **[V2: Post Kinds](v2-post-kinds/README.md)**
 
 Extends `PubkyAppPost` with new `kind` enum values (`calendar`, `event`,
 `attendee`). Leverages existing post infrastructure for faster implementation
 and better integration.
 
-### **[📊 Detailed Comparison](COMPARISON.md)**
-
-See the comprehensive comparison document to understand the tradeoffs between
-both approaches and decide which is better for your use case.
+```text
+For the prototype implementation a short discussion with someone from the Pubky
+team on which approach to take and what other approaches could be taken (not all
+potential approaches are documented here but the most important decision is on if PubkyAppPostKind should be used or new types should be created) would be helpful for making a decision.
+```
 
 ---
 

@@ -1,8 +1,8 @@
-# Nexus Calendar Endpoints (v2.0)
+# Nexus Calendar Endpoints
 
 This document specifies the Nexus indexer endpoints for aggregating and querying
-calendar posts. Calendar components leverage the existing post infrastructure
-with new `kind` filters.
+calendar posts. Calendar components use the existing PubkyAppPost with
+respective new `kind`'s.
 
 ## Index
 
@@ -19,16 +19,16 @@ with new `kind` filters.
 
 ### Endpoint Mapping
 
-| Operation                          | Endpoint                                                 | Status                  |
-| ---------------------------------- | -------------------------------------------------------- | ----------------------- |
-| List all calendars                 | `GET /v0/stream/posts?kind=calendar`                     | ✅ Works now            |
-| Get single calendar                | `GET /v0/post/{author_id}/{post_id}`                     | ✅ Works now            |
-| List all events                    | `GET /v0/stream/posts?kind=event`                        | ✅ Works now            |
-| List events in calendar            | `GET /v0/stream/posts?kind=event&parent={calendar_uri}`  | ⚠️ Needs parent param   |
-| List RSVPs for event               | `GET /v0/stream/posts?kind=attendee&parent={event_uri}`  | ⚠️ Needs parent param   |
-| Get user's calendars (owner/admin) | `GET /v0/calendars/managed?user_id={user_id}`            | ⚠️ New endpoint         |
-| Get user's RSVPs                   | `GET /v0/stream/posts?kind=attendee&source=author`       | ✅ Works now            |
-| Filter events by date              | `GET /v0/stream/posts?kind=event&start_after={iso_date}` | ⚠️ Needs date filtering |
+| Operation                          | Endpoint                                                       | Status                  |
+| ---------------------------------- | -------------------------------------------------------------- | ----------------------- |
+| List all calendars                 | `GET /v0/stream/posts?kind=calendar`                           | ✅ Works now            |
+| Get single calendar                | `GET /v0/post/{author_id}/{post_id}`                           | ✅ Works now            |
+| List all events                    | `GET /v0/stream/posts?kind=event`                              | ✅ Works now            |
+| List events in calendar            | `GET /v0/stream/posts?source=calendar_events&...`              | ⚠️ Needs Redis index    |
+| List RSVPs for event               | `GET /v0/stream/posts?source=event_attendees&...`              | ⚠️ Needs Redis index    |
+| Get user's calendars (owner/admin) | `GET /v0/calendars/managed?user_id={user_id}`                  | ⚠️ New endpoint         |
+| Get user's RSVPs                   | `GET /v0/stream/posts?kind=attendee&source=author`             | ✅ Works now            |
+| Filter events by date              | `GET /v0/stream/posts?kind=event&event_start_after={iso_date}` | ⚠️ Needs date filtering |
 
 **Legend**:
 
@@ -48,8 +48,6 @@ with new `kind` filters.
 ## Endpoint Overview
 
 Calendar posts use the **existing Nexus post endpoints** with `kind` filtering.
-This enables reuse of existing infrastructure while providing calendar-specific
-views.
 
 **Base URL (Development/MVP)**: `https://nexus.riginode.xyz/v0` or
 `http://localhost:3000/v0`
@@ -62,7 +60,7 @@ parameter to filter:
 - `kind=calendar` - Calendar collections (with admin list in jCal)
 - `kind=event` - Events (created by owner or admins)
 - `kind=attendee` - RSVPs
-- `kind=alarm` - Reminders
+- `kind=alarm` - Reminders (Lower priority)
 
 ### Current Status vs Required Changes
 
@@ -79,20 +77,28 @@ parameter to filter:
 
 1. **New Post Kinds**: Add `calendar`, `event`, `attendee`, `alarm` to
    `PubkyAppPostKind` enum
-2. **Parent URI Filtering**: Add `parent` query parameter to `/v0/stream/posts`
+2. **Redis Indexes** (CRITICAL for performance): Add sorted sets for calendar
+   queries following existing patterns:
+   - `["Posts", "CalendarEvents", "{calendar_author}", "{calendar_id}"]`
+   - `["Posts", "EventAttendees", "{event_author}", "{event_id}"]`
+3. **Parent URI Filtering**: Add `parent` query parameter to `/v0/stream/posts`
    endpoint
-3. **jCal Parsing**: Parse jCal content and extract metadata (dtstart, dtend,
-   summary, location, status, partstat)
-4. **Admin Relationships**: Extract `X-PUBKY-ADMIN` properties and create
+4. **StreamSource Extensions**: Add `CalendarEvents` and `EventAttendees`
+   sources to leverage Redis indexes
+5. **jCal Parsing**: Parse jCal content during `sync_put` and extract metadata
+   (dtstart, dtend, summary, location, status, partstat)
+6. **Admin List Caching**: Cache admin lists in Redis to avoid repeated jCal
+   parsing during event validation
+7. **Admin Relationships**: Extract `X-PUBKY-ADMIN` properties and create
    `ADMIN_OF` Neo4j relationships
-5. **Admin Validation**: Validate that event authors are calendar owners or
+8. **Admin Validation**: Validate that event authors are calendar owners or
    admins
-6. **Date Filtering**: Add `start_after`/`start_before` parameters for filtering
-   by jCal date fields
-7. **New Endpoint**: Add `/v0/calendars/managed` endpoint for querying calendars
-   by admin status
-8. **Post Response Extension**: Add `admins` field to calendar post responses
-   (extracted from indexed data)
+9. **Date Filtering**: Add `event_start_after`/`event_start_before` parameters
+   (renamed to avoid conflict with existing `start`/`end` timestamp params)
+10. **New Endpoint**: Add `/v0/calendars/managed` endpoint for querying
+    calendars by admin status
+11. **Post Response Extension**: Add `admins` field to calendar post responses
+    (extracted from cached data)
 
 ---
 
@@ -119,30 +125,32 @@ List all calendar posts across the network.
 
 ```json
 [
-  {
-    "details": {
-      "id": "0033RCZXVEPNG",
-      "author": "satoshi",
-      "content": "[\"vcalendar\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG\"],[\"name\",{},\"text\",\"Dezentralschweiz Meetups\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://adam-back\"],...],[]]",
-      "kind": "calendar",
-      "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
-      "attachments": ["pubky://satoshi/pub/pubky.app/files/0033RCZXVEPNG"],
-      "indexed_at": 1727785200000000
-    },
-    "counts": {
-      "replies": 12,
-      "tags": 2,
-      "unique_tags": 2,
-      "reposts": 0
-    },
-    "tags": [],
-    "relationships": {
-      "replied": null,
-      "reposted": null,
-      "mentioned": []
-    },
-    "bookmark": null
-  }
+    {
+        "details": {
+            "id": "0033RCZXVEPNG",
+            "author": "satoshi",
+            "content": "[\"vcalendar\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG\"],[\"name\",{},\"text\",\"Dezentralschweiz Meetups\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"],[\"x-pubky-admin\",{},\"uri\",\"pubky://adam-back\"],...],[]]",
+            "kind": "calendar",
+            "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
+            "attachments": [
+                "pubky://satoshi/pub/pubky.app/files/0033RCZXVEPNG"
+            ],
+            "indexed_at": 1727785200000000
+        },
+        "counts": {
+            "replies": 12,
+            "tags": 2,
+            "unique_tags": 2,
+            "reposts": 0
+        },
+        "tags": [],
+        "relationships": {
+            "replied": null,
+            "reposted": null,
+            "mentioned": []
+        },
+        "bookmark": null
+    }
 ]
 ```
 
@@ -177,62 +185,65 @@ array (after implementation)
 
 ---
 
-### GET /v0/stream/posts?kind=event&source=post_replies
+### GET /v0/stream/posts?source=calendar_events
 
-List all events for a specific calendar (using the post_replies source to get
-child posts).
+List all events for a specific calendar using optimized Redis index.
+
+**⚠️ NEW STREAM SOURCE** - Requires implementation of `CalendarEvents` source
+and Redis sorted set indexing.
 
 **Query Parameters**:
 
-| Parameter   | Type    | Default | Description                                                                                              |
-| ----------- | ------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `kind`      | string  | -       | **Required**: `event` to filter event posts                                                              |
-| `source`    | object  | -       | **Required**: `{"source": "post_replies", "author_id": "{calendar_author}", "post_id": "{calendar_id}"}` |
-| `skip`      | integer | `0`     | Pagination offset                                                                                        |
-| `limit`     | integer | `20`    | Number of results                                                                                        |
-| `viewer_id` | string  | -       | Viewer ID for personalized responses                                                                     |
+| Parameter            | Type    | Default | Description                                                                           |
+| -------------------- | ------- | ------- | ------------------------------------------------------------------------------------- |
+| `source`             | object  | -       | `{"source": "calendar_events", "calendar_author": "{author}", "calendar_id": "{id}"}` |
+| `skip`               | integer | `0`     | Pagination offset                                                                     |
+| `limit`              | integer | `20`    | Number of results                                                                     |
+| `viewer_id`          | string  | -       | Viewer ID for personalized responses                                                  |
+| `event_start_after`  | string  | -       | Filter events starting after date (ISO 8601)                                          |
+| `event_start_before` | string  | -       | Filter events starting before date (ISO 8601)                                         |
 
-**⚠️ IMPORTANT**: The current Nexus API uses `post_replies` source to get child
-posts, but this returns ALL replies (including comments). Calendar
-implementations need **additional filtering** to separate:
+**Implementation Details**:
 
-- `kind=event` posts (actual events in the calendar)
-- `kind=short/long` posts (comments on the calendar)
+This leverages a **Redis sorted set** for fast access:
 
-**Alternative Approach** (requires Nexus extension): Add support for filtering
-by `parent` URI directly:
+- **Key**: `["Posts", "CalendarEvents", "{calendar_author}", "{calendar_id}"]`
+- **Score**: `indexed_at` timestamp for timeline ordering
+- **Members**: Event post IDs
 
-```
-GET /v0/stream/posts?kind=event&parent=pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG
-```
+This pattern mirrors the existing `POST_REPLIES_PER_POST_KEY_PARTS` but filters
+by `kind=event` during indexing, avoiding the need for client-side filtering.
+
+**Fallback**: When date filters are used, falls back to Neo4j Cypher query with
+indexed `dtstart`/`dtend` properties.
 
 **Response**: PostStream array with `kind: "event"` posts
 
 ```json
 [
-  {
-    "details": {
-      "id": "0033SCZXVEPNG",
-      "author": "satoshi",
-      "content": "[\"vevent\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG\"],[\"summary\",{},\"text\",\"Bitcoin Meetup Zürich\"],...],[]]",
-      "kind": "event",
-      "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-      "indexed_at": 1727270200000000
-    },
-    "counts": {
-      "replies": 3,
-      "tags": 5,
-      "unique_tags": 3,
-      "reposts": 0
-    },
-    "tags": [],
-    "relationships": {
-      "replied": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
-      "reposted": null,
-      "mentioned": []
-    },
-    "bookmark": null
-  }
+    {
+        "details": {
+            "id": "0033SCZXVEPNG",
+            "author": "satoshi",
+            "content": "[\"vevent\",[[\"uid\",{},\"text\",\"pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG\"],[\"summary\",{},\"text\",\"Bitcoin Meetup Zürich\"],...],[]]",
+            "kind": "event",
+            "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+            "indexed_at": 1727270200000000
+        },
+        "counts": {
+            "replies": 3,
+            "tags": 5,
+            "unique_tags": 3,
+            "reposts": 0
+        },
+        "tags": [],
+        "relationships": {
+            "replied": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG",
+            "reposted": null,
+            "mentioned": []
+        },
+        "bookmark": null
+    }
 ]
 ```
 
@@ -274,26 +285,36 @@ List all event posts across the network.
 
 ---
 
-### GET /v0/stream/posts?kind=attendee&source=post_replies
+### GET /v0/stream/posts?source=event_attendees
 
-List all attendee RSVPs for a specific event.
+List all attendee RSVPs for a specific event using optimized Redis index.
+
+**⚠️ NEW STREAM SOURCE** - Requires implementation of `EventAttendees` source
+and Redis sorted set indexing.
 
 **Query Parameters**:
 
-| Parameter   | Type    | Default | Description                                                                                        |
-| ----------- | ------- | ------- | -------------------------------------------------------------------------------------------------- |
-| `kind`      | string  | -       | **Required**: `attendee` to filter RSVP posts                                                      |
-| `source`    | object  | -       | **Required**: `{"source": "post_replies", "author_id": "{event_author}", "post_id": "{event_id}"}` |
-| `skip`      | integer | `0`     | Pagination offset                                                                                  |
-| `limit`     | integer | `50`    | Number of results                                                                                  |
-| `viewer_id` | string  | -       | Viewer ID for personalized responses                                                               |
+| Parameter   | Type    | Default | Description                                                                     |
+| ----------- | ------- | ------- | ------------------------------------------------------------------------------- |
+| `source`    | object  | -       | `{"source": "event_attendees", "event_author": "{author}", "event_id": "{id}"}` |
+| `skip`      | integer | `0`     | Pagination offset                                                               |
+| `limit`     | integer | `50`    | Number of results                                                               |
+| `viewer_id` | string  | -       | Viewer ID for personalized responses                                            |
+| `partstat`  | string  | -       | Filter by participation status (ACCEPTED, DECLINED, TENTATIVE)                  |
+
+**Implementation Details**:
+
+This leverages a **Redis sorted set** for fast access:
+
+- **Key**: `["Posts", "EventAttendees", "{event_author}", "{event_id}"]`
+- **Score**: `indexed_at` timestamp for timeline ordering
+- **Members**: Attendee post IDs
 
 **Note**:
 
-- Filtering by `partstat` (participation status) **requires Nexus extension** to
-  parse and index jCal PARTSTAT values
-- Same limitation as events: `post_replies` returns all child posts, so
-  `kind=attendee` filter is essential
+- Filtering by `partstat` requires parsing jCal during `sync_put` and indexing
+  as a Neo4j property
+- When `partstat` filter is used, falls back to Neo4j Cypher query
 
 **Response**: PostStream array with `kind: "attendee"`
 
@@ -343,23 +364,23 @@ List all calendars where the current user is owner or admin.
 
 ```json
 {
-  "calendars": [
-    {
-      "id": "0033RCZXVEPNG",
-      "author": "satoshi",
-      "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
-      "role": "owner",
-      "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG"
-    },
-    {
-      "id": "0033XCZXVEPNG",
-      "author": "alice",
-      "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
-      "role": "admin",
-      "uri": "pubky://alice/pub/pubky.app/posts/0033XCZXVEPNG"
-    }
-  ],
-  "total": 2
+    "calendars": [
+        {
+            "id": "0033RCZXVEPNG",
+            "author": "satoshi",
+            "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
+            "role": "owner",
+            "uri": "pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG"
+        },
+        {
+            "id": "0033XCZXVEPNG",
+            "author": "alice",
+            "content": "[\"vcalendar\",...[\"x-pubky-admin\",{},\"uri\",\"pubky://hal\"]...,[]]",
+            "role": "admin",
+            "uri": "pubky://alice/pub/pubky.app/posts/0033XCZXVEPNG"
+        }
+    ],
+    "total": 2
 }
 ```
 
@@ -383,11 +404,11 @@ replies:
 
 ```json
 {
-  "content": "Looking forward to this meetup!",
-  "kind": "short",
-  "parent": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-  "embed": null,
-  "attachments": null
+    "content": "Looking forward to this meetup!",
+    "kind": "short",
+    "parent": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+    "embed": null,
+    "attachments": null
 }
 ```
 
@@ -395,9 +416,9 @@ replies:
 
 ```json
 {
-  "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-  "label": "bitcoin",
-  "created_at": 1727785200000000
+    "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+    "label": "bitcoin",
+    "created_at": 1727785200000000
 }
 ```
 
@@ -405,8 +426,8 @@ replies:
 
 ```json
 {
-  "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
-  "created_at": 1727785200000000
+    "uri": "pubky://satoshi/pub/pubky.app/posts/0033SCZXVEPNG",
+    "created_at": 1727785200000000
 }
 ```
 
@@ -436,23 +457,23 @@ GET /v0/calendars/managed?user_id={user_id}
 GET /v0/stream/posts?kind=attendee&source={"source":"author","author_id":"{user_id}"}&limit=100
 ```
 
-**Get upcoming events** (⚠️ requires Nexus extension for date filtering):
+**Get upcoming events** (⚠️ requires date filtering extension):
 
 ```
-GET /v0/stream/posts?kind=event&start_after=2025-10-14T00:00:00Z
+GET /v0/stream/posts?kind=event&event_start_after=2025-10-14T00:00:00Z
 ```
 
-_Note: Currently only `start`/`end` timestamp filtering is available, not jCal
-date field filtering_
+_Note: Parameter renamed from `start_after` to `event_start_after` to avoid
+conflict with existing `start` parameter_
 
-**Get events for a specific calendar** (⚠️ requires `parent` filter extension):
+**Get events for a specific calendar** (⚠️ requires new Redis index):
 
 ```
-GET /v0/stream/posts?kind=event&parent=pubky://satoshi/pub/pubky.app/posts/0033RCZXVEPNG
+GET /v0/stream/posts?source={"source":"calendar_events","calendar_author":"satoshi","calendar_id":"0033RCZXVEPNG"}
 ```
 
-_Workaround: Use `source=post_replies` with calendar author_id and post_id, then
-filter by kind=event_
+_This uses dedicated Redis sorted set for fast access, no client-side filtering
+needed_
 
 **Get a specific calendar post:**
 
@@ -460,11 +481,158 @@ filter by kind=event_
 GET /v0/post/satoshi/0033RCZXVEPNG?viewer_id={viewer_id}
 ```
 
-**Get RSVPs for a specific event:**
+**Get RSVPs for a specific event** (⚠️ requires new Redis index):
 
 ```
-GET /v0/stream/posts?kind=attendee&source={"source":"post_replies","author_id":"satoshi","post_id":"0033SCZXVEPNG"}
+GET /v0/stream/posts?source={"source":"event_attendees","event_author":"satoshi","event_id":"0033SCZXVEPNG"}
 ```
+
+**Get accepted RSVPs only** (falls back to Neo4j query):
+
+```
+GET /v0/stream/posts?source={"source":"event_attendees","event_author":"satoshi","event_id":"0033SCZXVEPNG"}&partstat=ACCEPTED
+```
+
+---
+
+## Redis Indexing Strategy
+
+### Overview
+
+Nexus uses a **hybrid Redis+Neo4j indexing strategy** for performance:
+
+1. **Redis sorted sets** for fast access to common query patterns
+2. **Neo4j Cypher queries** for complex filtering (dates, admin status, etc.)
+
+Calendar endpoints follow the same pattern as existing post endpoints to ensure
+consistent performance.
+
+### Required Redis Indexes
+
+#### 1. Calendar Events Index
+
+**Purpose**: Fast retrieval of events in a specific calendar
+
+**Key Pattern**:
+`["Posts", "CalendarEvents", "{calendar_author}", "{calendar_id}"]`
+
+**Example**: `Posts:CalendarEvents:satoshi:0033RCZXVEPNG`
+
+**Members**: Event post IDs (e.g., `satoshi:0033SCZXVEPNG`)
+
+**Score**: `indexed_at` timestamp (for timeline ordering)
+
+**Population**: During `sync_put` of posts with `kind=event` and valid `parent`:
+
+```rust
+// Add to calendar's event sorted set
+if post.kind == PubkyAppPostKind::Event && post.parent.is_some() {
+    let (calendar_author, calendar_id) = parse_parent_uri(&post.parent)?;
+    let key_parts = ["Posts", "CalendarEvents", &calendar_author, &calendar_id];
+    redis_add_to_sorted_set(&key_parts, &post_id, indexed_at).await?;
+}
+```
+
+#### 2. Event Attendees Index
+
+**Purpose**: Fast retrieval of RSVPs for a specific event
+
+**Key Pattern**: `["Posts", "EventAttendees", "{event_author}", "{event_id}"]`
+
+**Example**: `Posts:EventAttendees:satoshi:0033SCZXVEPNG`
+
+**Members**: Attendee post IDs (e.g., `alice:0033XYZABC`)
+
+**Score**: `indexed_at` timestamp (for timeline ordering)
+
+**Population**: During `sync_put` of posts with `kind=attendee` and valid
+`parent`:
+
+```rust
+// Add to event's attendee sorted set
+if post.kind == PubkyAppPostKind::Attendee && post.parent.is_some() {
+    let (event_author, event_id) = parse_parent_uri(&post.parent)?;
+    let key_parts = ["Posts", "EventAttendees", &event_author, &event_id];
+    redis_add_to_sorted_set(&key_parts, &post_id, indexed_at).await?;
+}
+```
+
+#### 3. Admin List Cache
+
+**Purpose**: Fast validation of event authors without parsing jCal
+
+**Key Pattern**: `["Calendar", "Admins", "{calendar_author}", "{calendar_id}"]`
+
+**Example**: `Calendar:Admins:satoshi:0033RCZXVEPNG`
+
+**Type**: Redis SET (not sorted set)
+
+**Members**: Admin user IDs (e.g., `hal`, `adam-back`)
+
+**Population**: During `sync_put` of calendar posts:
+
+```rust
+// Cache admin list for fast validation
+if post.kind == PubkyAppPostKind::Calendar {
+    let jcal = parse_jcal(&post.content)?;
+    let admin_uris = extract_jcal_properties(&jcal[1], "x-pubky-admin")?;
+    let admin_ids: Vec<String> = admin_uris.iter()
+        .map(|uri| parse_user_id_from_uri(uri))
+        .collect();
+    
+    let key_parts = ["Calendar", "Admins", &author_id, &post_id];
+    redis_set_members(&key_parts, &admin_ids).await?;
+}
+```
+
+### Query Optimization Path
+
+When processing a calendar query, Nexus follows this decision tree:
+
+```
+1. Can use Redis index?
+   └─ Yes (no date filters, no partstat filter)
+      └─ Query Redis sorted set → Fast O(log N) retrieval
+   └─ No (has date/partstat filters OR index doesn't exist)
+      └─ Fall back to Neo4j Cypher → Query with indexed properties
+```
+
+This is implemented in `can_use_index()` function extension:
+
+```rust
+fn can_use_index(
+    sorting: &StreamSorting,
+    source: &StreamSource,
+    tags: &Option<Vec<String>>,
+    kind: &Option<PubkyAppPostKind>,
+    has_date_filter: bool,
+    has_partstat_filter: bool,
+) -> bool {
+    // Can't use Redis if we need to filter by jCal fields
+    if has_date_filter || has_partstat_filter {
+        return false;
+    }
+    
+    // ... existing checks ...
+    
+    // NEW: Calendar-specific indexes
+    match (sorting, source) {
+        (StreamSorting::Timeline, StreamSource::CalendarEvents { .. }) => true,
+        (StreamSorting::Timeline, StreamSource::EventAttendees { .. }) => true,
+        _ => false,
+    }
+}
+```
+
+### Performance Characteristics
+
+| Query Type                     | Data Structure   | Time Complexity | Notes                           |
+| ------------------------------ | ---------------- | --------------- | ------------------------------- |
+| Get events in calendar         | Redis Sorted Set | O(log N + M)    | N = total events, M = page size |
+| Get RSVPs for event            | Redis Sorted Set | O(log N + M)    | N = total RSVPs, M = page size  |
+| Validate event author is admin | Redis Set        | O(1)            | Cached admin list lookup        |
+| Filter events by date          | Neo4j Cypher     | O(N log N)      | Uses dtstart index              |
+| Filter RSVPs by partstat       | Neo4j Cypher     | O(N log N)      | Uses partstat index             |
 
 ---
 
@@ -474,73 +642,195 @@ GET /v0/stream/posts?kind=attendee&source={"source":"post_replies","author_id":"
 
 **In `nexus-watcher/src/events/handlers/post.rs`:**
 
-1. **Parse jCal Content**: When `kind` is `calendar`, `event`, `attendee`, or
-   `alarm`, parse the jCal JSON from `content` field
-2. **Extract Admin List**: For calendars, extract all `X-PUBKY-ADMIN` properties
-   and create `ADMIN_OF` relationships in Neo4j
-3. **Extract Metadata**: Index key properties (dtstart, dtend, summary) into
-   separate Neo4j properties for efficient querying
-4. **Validate Parent**: For events, verify author is either calendar owner OR
-   listed in calendar's `X-PUBKY-ADMIN` properties
+The `sync_put` handler needs to be extended to handle calendar posts. Follow the
+existing dual-write pattern (Neo4j + Redis).
 
-**Admin Validation Logic**:
+#### 1. Parse jCal Content
+
+When `kind` is `calendar`, `event`, `attendee`, or `alarm`, parse jCal and
+extract metadata:
 
 ```rust
-async fn validate_event_admin(
-    event: &PubkyAppPost,
-    author_id: &PubkyId
-) -> Result<bool> {
-    let parent_uri = event.parent.as_ref()
-        .ok_or("Event must have parent calendar")?;
-
-    // Get parent calendar post
-    let calendar = PostDetails::get_by_uri(parent_uri).await?
-        .ok_or("Parent calendar not found")?;
-
-    // Check if author is calendar owner
-    if calendar.author_id == *author_id {
-        return Ok(true);
+async fn sync_put(
+    post: PubkyAppPost,
+    author_id: PubkyId,
+    post_id: String,
+) -> Result<(), DynError> {
+    // ... existing code ...
+    
+    // NEW: Handle calendar posts
+    if matches!(post.kind, PubkyAppPostKind::Calendar | PubkyAppPostKind::Event | PubkyAppPostKind::Attendee) {
+        handle_calendar_post(&post, &author_id, &post_id, &post_details).await?;
     }
-
-    // Parse jCal and check X-PUBKY-ADMIN properties
-    let jcal: Vec<serde_json::Value> = serde_json::from_str(&calendar.content)?;
-    let properties = &jcal[1];
-
-    let admin_uris = extract_all_jcal_properties(properties, "x-pubky-admin")?;
-    let author_uri = format!("pubky://{}", author_id);
-
-    Ok(admin_uris.contains(&author_uri))
+    
+    // ... existing code ...
 }
 ```
 
-**Admin Relationship Indexing**:
+#### 2. Calendar Post Handler
 
 ```rust
-async fn index_calendar_admins(
-    calendar_uri: &str,
-    jcal: &Vec<serde_json::Value>
+async fn handle_calendar_post(
+    post: &PubkyAppPost,
+    author_id: &str,
+    post_id: &str,
+    post_details: &PostDetails,
 ) -> Result<()> {
+    let jcal: Vec<serde_json::Value> = serde_json::from_str(&post.content)?;
     let properties = &jcal[1];
-    let admin_uris = extract_all_jcal_properties(properties, "x-pubky-admin")?;
-
-    // Create ADMIN_OF relationships in Neo4j
-    for admin_uri in admin_uris {
-        let admin_id = parse_pubky_uri(&admin_uri)?;
-
-        graph_client.execute(
-            "MATCH (admin:User {id: $admin_id})
-             MATCH (calendar:Post {uri: $calendar_uri})
-             MERGE (admin)-[:ADMIN_OF]->(calendar)",
-            params! {
-                "admin_id" => admin_id,
-                "calendar_uri" => calendar_uri
+    
+    match post.kind {
+        PubkyAppPostKind::Calendar => {
+            // Extract and cache admin list in Redis
+            let admin_uris = extract_jcal_properties(properties, "x-pubky-admin")?;
+            let admin_ids: Vec<String> = admin_uris.iter()
+                .map(|uri| parse_user_id_from_uri(uri))
+                .collect::<Result<Vec<_>>>()?;
+            
+            // Cache in Redis for fast validation
+            let key_parts = ["Calendar", "Admins", author_id, post_id];
+            PostStream::cache_calendar_admins(&key_parts, &admin_ids).await?;
+            
+            // Create ADMIN_OF relationships in Neo4j
+            for admin_id in &admin_ids {
+                create_admin_relationship(admin_id, &post_details.uri).await?;
             }
-        ).await?;
+            
+            // Extract calendar name for metadata
+            if let Ok(name) = extract_jcal_property(properties, "name") {
+                post_details.update_metadata("jcal_name", name).await?;
+            }
+        },
+        
+        PubkyAppPostKind::Event => {
+            // Validate author is owner or admin of parent calendar
+            validate_event_author(post, author_id).await?;
+            
+            // Extract and index event metadata
+            let dtstart = extract_jcal_date(properties, "dtstart")?;
+            let dtend = extract_jcal_date(properties, "dtend")?;
+            let summary = extract_jcal_property(properties, "summary")?;
+            let location = extract_jcal_property(properties, "location").ok();
+            let status = extract_jcal_property(properties, "status").ok();
+            
+            // Store in Neo4j for date-range queries
+            post_details.update_event_metadata(dtstart, dtend, summary, location, status).await?;
+            
+            // Add to calendar's event Redis index
+            if let Some(parent_uri) = &post.parent {
+                let (cal_author, cal_id) = parse_post_uri(parent_uri)?;
+                let key_parts = ["Posts", "CalendarEvents", &cal_author, &cal_id];
+                PostStream::add_to_sorted_set(&key_parts, &format!("{}:{}", author_id, post_id), post_details.indexed_at).await?;
+            }
+        },
+        
+        PubkyAppPostKind::Attendee => {
+            // Extract PARTSTAT from attendee property
+            let partstat = extract_jcal_attendee_partstat(properties)?;
+            post_details.update_metadata("partstat", &partstat).await?;
+            
+            // Add to event's attendee Redis index
+            if let Some(parent_uri) = &post.parent {
+                let (event_author, event_id) = parse_post_uri(parent_uri)?;
+                let key_parts = ["Posts", "EventAttendees", &event_author, &event_id];
+                PostStream::add_to_sorted_set(&key_parts, &format!("{}:{}", author_id, post_id), post_details.indexed_at).await?;
+            }
+        },
+        
+        _ => {}
     }
-
+    
     Ok(())
 }
 ```
+
+#### 3. Admin Validation
+
+```rust
+async fn validate_event_author(event: &PubkyAppPost, author_id: &str) -> Result<()> {
+    let parent_uri = event.parent.as_ref()
+        .ok_or("Event must have parent calendar")?;
+    
+    let (calendar_author, calendar_id) = parse_post_uri(parent_uri)?;
+    
+    // Check if author is calendar owner
+    if calendar_author == author_id {
+        return Ok(());
+    }
+    
+    // Check cached admin list in Redis (fast!)
+    let key_parts = ["Calendar", "Admins", &calendar_author, &calendar_id];
+    let is_admin = PostStream::check_set_membership(&key_parts, author_id).await?;
+    
+    if !is_admin {
+        return Err("Event author must be calendar owner or admin".into());
+    }
+    
+    Ok(())
+}
+```
+
+#### 4. jCal Parsing Utilities
+
+Add helper functions to parse jCal format:
+
+```rust
+fn extract_jcal_property(properties: &[Value], name: &str) -> Result<String> {
+    properties.iter()
+        .find(|prop| prop[0].as_str() == Some(name))
+        .and_then(|prop| prop[3].as_str())
+        .map(String::from)
+        .ok_or_else(|| format!("Missing {} property", name).into())
+}
+
+fn extract_jcal_properties(properties: &[Value], name: &str) -> Result<Vec<String>> {
+    Ok(properties.iter()
+        .filter(|prop| prop[0].as_str() == Some(name))
+        .filter_map(|prop| prop[3].as_str())
+        .map(String::from)
+        .collect())
+}
+
+fn extract_jcal_date(properties: &[Value], name: &str) -> Result<i64> {
+    let date_str = extract_jcal_property(properties, name)?;
+    // Parse ISO 8601 or other formats and convert to Unix timestamp
+    parse_ical_datetime(&date_str)
+}
+```
+
+#### 5. Redis Helper Methods
+
+Add to `nexus-common/src/models/post/stream.rs`:
+
+````rust
+impl PostStream {
+    // Cache calendar admin list in Redis SET
+    pub async fn cache_calendar_admins(
+        key_parts: &[&str],
+        admin_ids: &[String],
+    ) -> Result<(), DynError> {
+        let redis_key = key_parts.join(":");
+        let mut conn = get_redis_client().get_multiplexed_async_connection().await?;
+        
+        // Store as Redis SET for fast membership checks
+        for admin_id in admin_ids {
+            conn.sadd::<_, _, ()>(&redis_key, admin_id).await?;
+        }
+        
+        Ok(())
+    }
+    
+    // Check if user is in calendar's admin set
+    pub async fn check_set_membership(
+        key_parts: &[&str],
+        member: &str,
+    ) -> Result<bool, DynError> {
+        let redis_key = key_parts.join(":");
+        let mut conn = get_redis_client().get_multiplexed_async_connection().await?;
+        
+        Ok(conn.sismember(&redis_key, member).await?)
+    }
+}
 
 ### Graph Schema Additions
 
@@ -554,7 +844,7 @@ CREATE INDEX admin_of_idx FOR ()-[r:ADMIN_OF]-() ON (r.created_at);
 CREATE INDEX post_kind_idx FOR (p:Post) ON (p.kind);
 CREATE INDEX post_dtstart_idx FOR (p:Post) ON (p.dtstart);
 CREATE INDEX post_dtend_idx FOR (p:Post) ON (p.dtend);
-```
+````
 
 **Post Node Properties (for calendar posts):**
 
@@ -571,58 +861,183 @@ CREATE INDEX post_dtend_idx FOR (p:Post) ON (p.dtend);
 
 ### API Endpoint Extensions
 
-**In `nexus-webapi/src/routes/posts.rs`:**
+**In `pubky-app-specs/src/stream.rs`:**
 
-Extend the existing `/v0/stream/posts` endpoint handler to support additional
-query parameters:
+First, extend the `StreamSource` enum to include calendar-specific sources:
 
 ```rust
-#[derive(Deserialize)]
-pub struct PostStreamQuery {
-    // Existing parameters
-    pub skip: Option<i64>,
-    pub limit: Option<i64>,
-    pub kind: Option<PubkyAppPostKind>,  // Already exists
-    pub source: Option<StreamSource>,     // Already exists
-    pub viewer_id: Option<String>,        // Already exists
-    pub sorting: Option<StreamSorting>,   // Already exists
-    pub start: Option<i64>,               // Already exists (timestamp)
-    pub end: Option<i64>,                 // Already exists (timestamp)
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+#[serde(tag = "source", rename_all = "snake_case")]
+pub enum StreamSource {
+    // ... existing variants ...
     
-    // NEW: Calendar-specific parameters
-    pub parent: Option<String>,           // Filter by parent URI
-    pub start_after: Option<String>,      // Filter by jCal dtstart (ISO 8601)
-    pub start_before: Option<String>,     // Filter by jCal dtstart (ISO 8601)
+    // NEW: Calendar-specific sources
+    #[serde(rename = "calendar_events")]
+    CalendarEvents {
+        calendar_author: String,
+        calendar_id: String,
+    },
+    
+    #[serde(rename = "event_attendees")]
+    EventAttendees {
+        event_author: String,
+        event_id: String,
+    },
+}
+```
+
+**In `nexus-webapi/src/routes/v0/stream/posts.rs`:**
+
+Extend the existing `/v0/stream/posts` endpoint handler to support calendar
+parameters:
+
+```rust
+#[derive(Deserialize, Debug, ToSchema)]
+pub struct PostStreamQuery {
+    // Existing parameters (no changes)
+    #[serde(flatten, default)]
+    pub source: Option<StreamSource>,     // Now includes CalendarEvents, EventAttendees
+    #[serde(flatten)]
+    pub pagination: Pagination,
+    pub order: Option<SortOrder>,
+    pub sorting: Option<StreamSorting>,
+    pub viewer_id: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_comma_separated")]
+    pub tags: Option<Vec<String>>,
+    pub kind: Option<PubkyAppPostKind>,   // Now includes calendar, event, attendee
+    
+    // NEW: Calendar-specific date filtering (renamed to avoid conflicts)
+    pub event_start_after: Option<String>,   // ISO 8601 date for dtstart filtering
+    pub event_start_before: Option<String>,  // ISO 8601 date for dtstart filtering
+    pub partstat: Option<String>,            // ACCEPTED, DECLINED, TENTATIVE
 }
 
 pub async fn stream_posts_handler(
     Query(query): Query<PostStreamQuery>
 ) -> Result<Json<Vec<PostView>>, ApiError> {
-    let mut cypher_conditions = vec![];
-
-    // Existing kind filtering (already works)
-    if let Some(kind) = query.kind {
-        cypher_conditions.push(format!("p.kind = '{}'", kind));
+    // ... existing validation ...
+    
+    // NEW: Determine if we need date/partstat filtering
+    let has_date_filter = query.event_start_after.is_some() || query.event_start_before.is_some();
+    let has_partstat_filter = query.partstat.is_some();
+    
+    // Check if we can use Redis index or need to fall back to Neo4j
+    let use_redis = can_use_index(
+        &sorting,
+        &source,
+        &query.tags,
+        &query.kind,
+        has_date_filter,
+        has_partstat_filter,
+    );
+    
+    if use_redis {
+        // Use Redis sorted set (fast path)
+        match source {
+            StreamSource::CalendarEvents { calendar_author, calendar_id } => {
+                PostStream::get_calendar_events(&calendar_author, &calendar_id, /* ... */).await?
+            },
+            StreamSource::EventAttendees { event_author, event_id } => {
+                PostStream::get_event_attendees(&event_author, &event_id, /* ... */).await?
+            },
+            // ... existing sources ...
+            _ => { /* fallback */ }
+        }
+    } else {
+        // Fall back to Neo4j query (complex filtering)
+        PostStream::query_with_filters(
+            query.kind,
+            query.event_start_after,
+            query.event_start_before,
+            query.partstat,
+            /* ... */
+        ).await?
     }
+}
+```
 
-    // NEW: Filter by parent URI (for events in calendar, RSVPs in event)
-    if let Some(parent_uri) = query.parent {
-        cypher_conditions.push(format!("p.parent = '{}'", parent_uri));
+**In `nexus-common/src/models/post/stream.rs`:**
+
+Extend the `can_use_index` function:
+
+```rust
+fn can_use_index(
+    sorting: &StreamSorting,
+    source: &StreamSource,
+    tags: &Option<Vec<String>>,
+    kind: &Option<PubkyAppPostKind>,
+    has_date_filter: bool,
+    has_partstat_filter: bool,
+) -> bool {
+    // Can't use Redis if we need jCal field filtering
+    if has_date_filter || has_partstat_filter {
+        return false;
     }
-
-    // NEW: Filter by jCal date range (requires indexed dtstart field)
-    if let Some(after) = query.start_after {
-        let timestamp = parse_iso_8601_to_timestamp(&after)?;
-        cypher_conditions.push(format!("p.dtstart >= {}", timestamp));
+    
+    // ... existing checks ...
+    
+    // NEW: Calendar-specific indexes (timeline sorting only)
+    match (sorting, source, tags) {
+        (StreamSorting::Timeline, StreamSource::CalendarEvents { .. }, None) => true,
+        (StreamSorting::Timeline, StreamSource::EventAttendees { .. }, None) => true,
+        _ => false,
     }
+}
+```
 
-    if let Some(before) = query.start_before {
-        let timestamp = parse_iso_8601_to_timestamp(&before)?;
-        cypher_conditions.push(format!("p.dtstart <= {}", timestamp));
+Add new retrieval methods:
+
+```rust
+impl PostStream {
+    pub async fn get_calendar_events(
+        calendar_author: &str,
+        calendar_id: &str,
+        order: SortOrder,
+        start: Option<f64>,
+        end: Option<f64>,
+        skip: Option<usize>,
+        limit: Option<usize>,
+    ) -> Result<Vec<String>, DynError> {
+        let key_parts = ["Posts", "CalendarEvents", calendar_author, calendar_id];
+        let events = Self::try_from_index_sorted_set(
+            &key_parts,
+            start,
+            end,
+            skip,
+            limit,
+            order,
+            None,
+        ).await?;
+        
+        Ok(events.map_or(Vec::new(), |entries| {
+            entries.into_iter().map(|(post_id, _)| post_id).collect()
+        }))
     }
-
-    // Execute query with conditions
-    PostStream::query_with_filters(cypher_conditions, query).await
+    
+    pub async fn get_event_attendees(
+        event_author: &str,
+        event_id: &str,
+        order: SortOrder,
+        start: Option<f64>,
+        end: Option<f64>,
+        skip: Option<usize>,
+        limit: Option<usize>,
+    ) -> Result<Vec<String>, DynError> {
+        let key_parts = ["Posts", "EventAttendees", event_author, event_id];
+        let attendees = Self::try_from_index_sorted_set(
+            &key_parts,
+            start,
+            end,
+            skip,
+            limit,
+            order,
+            None,
+        ).await?;
+        
+        Ok(attendees.map_or(Vec::new(), |entries| {
+            entries.into_iter().map(|(post_id, _)| post_id).collect()
+        }))
+    }
 }
 ```
 
@@ -769,28 +1184,28 @@ pub enum PubkyAppPostKind {
 
 ```javascript
 const calendar = {
-  content: JSON.stringify([
-    "vcalendar",
-    [
-      ["prodid", {}, "text", "-//Pubky//Pubky Calendar 1.0//EN"],
-      ["version", {}, "text", "2.0"],
-      [
-        "uid",
-        {},
-        "text",
-        `pubky://${userId}/pub/pubky.app/posts/${calendarId}`,
-      ],
-      ["name", {}, "text", "My Bitcoin Events"],
-      ["color", {}, "text", "#F7931A"],
-      ["x-pubky-admin", {}, "uri", "pubky://hal"],
-      ["x-pubky-admin", {}, "uri", "pubky://adam-back"],
-    ],
-    [],
-  ]),
-  kind: "calendar",
-  parent: null,
-  embed: null,
-  attachments: [],
+    content: JSON.stringify([
+        "vcalendar",
+        [
+            ["prodid", {}, "text", "-//Pubky//Pubky Calendar 1.0//EN"],
+            ["version", {}, "text", "2.0"],
+            [
+                "uid",
+                {},
+                "text",
+                `pubky://${userId}/pub/pubky.app/posts/${calendarId}`,
+            ],
+            ["name", {}, "text", "My Bitcoin Events"],
+            ["color", {}, "text", "#F7931A"],
+            ["x-pubky-admin", {}, "uri", "pubky://hal"],
+            ["x-pubky-admin", {}, "uri", "pubky://adam-back"],
+        ],
+        [],
+    ]),
+    kind: "calendar",
+    parent: null,
+    embed: null,
+    attachments: [],
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${calendarId}`, calendar);
@@ -815,25 +1230,30 @@ await pubkyClient.put(`/pub/pubky.app/posts/${calendarId}`, calendar);
 
 ```javascript
 const event = {
-  content: JSON.stringify([
-    "vevent",
-    [
-      ["uid", {}, "text", `pubky://${userId}/pub/pubky.app/posts/${eventId}`],
-      [
-        "dtstart",
-        { "tzid": "Europe/Zurich" },
-        "date-time",
-        "2025-10-20T19:00:00",
-      ],
-      ["summary", {}, "text", "Bitcoin Meetup Zürich"],
-      ["organizer", { "cn": "Hal" }, "cal-address", `pubky://${userId}`],
-    ],
-    [],
-  ]),
-  kind: "event",
-  parent: `pubky://satoshi/pub/pubky.app/posts/${calendarId}`,
-  embed: null,
-  attachments: [],
+    content: JSON.stringify([
+        "vevent",
+        [
+            [
+                "uid",
+                {},
+                "text",
+                `pubky://${userId}/pub/pubky.app/posts/${eventId}`,
+            ],
+            [
+                "dtstart",
+                { "tzid": "Europe/Zurich" },
+                "date-time",
+                "2025-10-20T19:00:00",
+            ],
+            ["summary", {}, "text", "Bitcoin Meetup Zürich"],
+            ["organizer", { "cn": "Hal" }, "cal-address", `pubky://${userId}`],
+        ],
+        [],
+    ]),
+    kind: "event",
+    parent: `pubky://satoshi/pub/pubky.app/posts/${calendarId}`,
+    embed: null,
+    attachments: [],
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${eventId}`, event);
@@ -844,32 +1264,32 @@ await pubkyClient.put(`/pub/pubky.app/posts/${eventId}`, event);
 
 ```javascript
 const attendee = {
-  content: JSON.stringify([
-    "attendee",
-    [
-      [
-        "uid",
-        {},
-        "text",
-        `pubky://${userId}/pub/pubky.app/posts/${attendeeId}`,
-      ],
-      [
+    content: JSON.stringify([
         "attendee",
-        {
-          "cn": "Alice",
-          "partstat": "ACCEPTED",
-          "rsvp": "TRUE",
-        },
-        "cal-address",
-        `pubky://${userId}`,
-      ],
-    ],
-    [],
-  ]),
-  kind: "attendee",
-  parent: `pubky://satoshi/pub/pubky.app/posts/${eventId}`,
-  embed: null,
-  attachments: null,
+        [
+            [
+                "uid",
+                {},
+                "text",
+                `pubky://${userId}/pub/pubky.app/posts/${attendeeId}`,
+            ],
+            [
+                "attendee",
+                {
+                    "cn": "Alice",
+                    "partstat": "ACCEPTED",
+                    "rsvp": "TRUE",
+                },
+                "cal-address",
+                `pubky://${userId}`,
+            ],
+        ],
+        [],
+    ]),
+    kind: "attendee",
+    parent: `pubky://satoshi/pub/pubky.app/posts/${eventId}`,
+    embed: null,
+    attachments: null,
 };
 
 await pubkyClient.put(`/pub/pubky.app/posts/${attendeeId}`, attendee);
@@ -1053,19 +1473,37 @@ Update `nexus-webapi` OpenAPI spec to include:
 
 ### Implementation Priority
 
-**Phase 1 (MVP - Required)**:
+1. **Add new post kinds to enum** - `calendar`, `event`, `attendee` to
+   `PubkyAppPostKind`
+2. **Add Redis sorted set indexes** - `CalendarEvents` and `EventAttendees` keys
+3. **Add StreamSource variants** - `CalendarEvents` and `EventAttendees`
+4. **Basic jCal parsing** - Extract dtstart, dtend, summary during `sync_put`
+5. **Redis dual-write** - Update sorted sets when indexing calendar posts
+6. **Extend `can_use_index()`** - Recognize calendar query patterns
+7. **Neo4j indexes** - Add indexes for `kind`, `dtstart`, `dtend` properties
+8. **Admin list caching** - Cache admin lists in Redis SETs
+9. **Admin validation** - Validate event authors using cached admin lists
+10. **ADMIN_OF relationships** - Create Neo4j relationships for admin queries
+11. **`/v0/calendars/managed` endpoint** - Query calendars by admin status
+12. **Date range filtering** - Add `event_start_after`/`event_start_before`
+    parameters
+13. **PARTSTAT filtering** - Add `partstat` parameter for RSVP filtering
+14. **Neo4j fallback queries** - Implement Cypher queries for complex filters
+15. **Full jCal metadata** - Extract location, status, and other optional fields
+16. Alarm support (`kind=alarm`)
+17. Recurring event support
+18. Timezone handling improvements
+19. Performance tuning and caching optimizations
 
-1. Add new post kinds to enum ✅
-2. Add `parent` parameter to stream endpoint ✅
-3. Basic jCal parsing (extract dtstart, dtend, summary) ✅
-4. Neo4j indexes for kind and parent ✅
+### Critical Performance Notes
 
-**Phase 2 (Enhanced)**: 5. Admin relationship indexing ✅ 6. Admin validation
-for events ✅ 7. Date filtering (`start_after`, `start_before`) ✅ 8.
-`/v0/calendars/managed` endpoint ✅
+⚠️ **DO NOT skip Redis indexing (Phase 1)** - Without Redis sorted sets,
+calendar queries will be slow and put unnecessary load on Neo4j. The hybrid
+indexing strategy is what makes Nexus performant.
 
-**Phase 3 (Optional)**: 9. Full jCal metadata extraction (location, status,
-partstat) 10. Alarm support 11. Additional calendar-specific query optimizations
+⚠️ **DO NOT use `post_replies` workaround in production** - This returns all
+child posts (including comments), requiring client-side filtering. Always use
+dedicated `CalendarEvents` and `EventAttendees` sources.
 
 ### Testing Requirements
 

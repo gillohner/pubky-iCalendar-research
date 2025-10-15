@@ -1,11 +1,30 @@
 # Pubky iCalendar Integration Specification
 
-```
-Info: After reviewing Nexus Documentation I believe my original approach
-of creating new PubkyAppX for Events, Calendars, Attendance and such was not
-consistent with the current Ecosystem and would've required unnecessary changes
-to Pubky Nexus. I have now updated the specs to be a new kind of PubkyAppPost. (v2.0 documents)
-```
+## 🔀 Two Approaches Available
+
+This repository now documents **two different approaches** for implementing
+calendar functionality in Pubky:
+
+### **[V1: Separate Types](v1-separate-types/)** - Original Specification
+
+Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee` types
+with separate storage paths. Provides strong type safety but requires more
+implementation work.
+
+### **[V2: Post Kinds](v2-post-kinds/)** - Current Specification
+
+Extends `PubkyAppPost` with new `kind` enum values (`calendar`, `event`,
+`attendee`). Leverages existing post infrastructure for faster implementation
+and better integration.
+
+### **[📊 Detailed Comparison](COMPARISON.md)**
+
+See the comprehensive comparison document to understand the tradeoffs between
+both approaches and decide which is better for your use case.
+
+---
+
+## Overview
 
 A specification for integrating industry-standard iCalendar protocols (RFC 5545,
 RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the Pubky ecosystem,
@@ -35,23 +54,48 @@ this. I decided to document my ideas of how it could look, as the core structure
 is designed with such a bridge in mind. Keeping this in mind for later stages
 could enable deeper integration into existing workflows, as mentioned before.
 
-## 📋 Document Structure
+## 📂 Repository Structure
 
-### Core Specification Files
+### Version-Specific Folders
 
-| File                                                                         | Purpose                         | Contents                                                             |
-| ---------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------- |
-| **[pubky-iCal-specification.md](./pubky-ical-specification.md)**             | Pure technical specification    | Data schemas, storage paths, RFC mappings                            |
-| **[nexus-endpoints.md](./nexus-endpoints.md)**                               | Outline minimal Nexus endpoints | Data schemas, storage paths, RFC mappings                            |
-| **[prototype-implementation-scope.md](./prototype-implementation-scope.md)** | Initial PoC Prototype Scope     | Basic Screens, supported functionalities, what isn't supported, etc. |
+| Folder                                       | Description                         | Status                    |
+| -------------------------------------------- | ----------------------------------- | ------------------------- |
+| **[v1-separate-types/](v1-separate-types/)** | Original spec using dedicated types | Complete                  |
+| **[v2-post-kinds/](v2-post-kinds/)**         | Current spec using Post kinds       | Complete + Latest updates |
 
-### Supporting Documents
+**Each version folder contains:**
 
-| File                                               | Purpose                                           | Contents                                                                                                                        |
-| -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **[context-reference.md](./context-reference.md)** | Context and external References used as Resources | Breakdown of RFC Calendar standards and URLs to external resources                                                              |
-| **[diagrams.md](./diagrams.md)**                   | Collection of Diagrams for System overview        | Data flow and System Overview diagramms                                                                                         |
-| **[event-examples.md](./event-examples.md)**       | Example Schemas                                   | Break down different event-types, calendars and such and provide specific examples of how Homeserver documents should look like |
+| File                          | Description                                               |
+| ----------------------------- | --------------------------------------------------------- |
+| `pubky-ical-specification.md` | Core technical specification (different for each version) |
+| `nexus-endpoints.md`          | Nexus API endpoints (different for each version)          |
+| `event-examples.md`           | Example calendar data (different structure per version)   |
 
-```
-```
+### Shared Architecture Files (Root Level)
+
+These files are shared between both versions as they describe general
+architecture and frontend scope:
+
+| File                                                                       | Description                                    |
+| -------------------------------------------------------------------------- | ---------------------------------------------- |
+| **[diagrams.md](diagrams.md)**                                             | System architecture diagrams                   |
+| **[prototype-implementation-scope.md](prototype-implementation-scope.md)** | Frontend implementation scope and roadmap      |
+| **[context-references.md](context-references.md)**                         | RFC calendar standards and external references |
+| **[notes.md](notes.md)**                                                   | Development notes and considerations           |
+
+### Decision Documents
+
+| File                                       | Description                   |
+| ------------------------------------------ | ----------------------------- |
+| **[COMPARISON.md](COMPARISON.md)**         | Detailed technical comparison |
+| **[DECISION_GUIDE.md](DECISION_GUIDE.md)** | Quick decision guide          |
+
+### Legacy Root Files
+
+The following files exist at root level for backward compatibility but may not
+reflect latest updates. **Use the version folders instead**
+(`v1-separate-types/` or `v2-post-kinds/`):
+
+- `pubky-ical-specification.md` (legacy)
+- `nexus-endpoints.md` (legacy)
+- `event-examples.md` (legacy)

@@ -1,14 +1,11 @@
-# Prototype Implementation (v2.0)
+# Prototype Implementation
 
 ## Executive Summary
 
-Implement a proof-of-concept calendar application using **PubkyAppPost** with
-new `kind` values (`calendar`, `event`, `attendee`, `alarm`). The implementation
+Implement a proof-of-concept Pubky calendar application. The implementation
 leverages existing Nexus post infrastructure while extending it with
 calendar-specific functionality. Calendar admins are defined by the calendar
 owner through `X-PUBKY-ADMIN` properties in the jCal content.
-
-## Architectural Changes from v1.0
 
 **Key Implementation Differences:**
 
@@ -26,9 +23,11 @@ owner through `X-PUBKY-ADMIN` properties in the jCal content.
 
 ---
 
-## Roadmap (Updated)
+## Roadmap
 
-### Phase 1: Extend pubky-app-specs (~1 week)
+### Phase 0: Finish local development Setup and decide on implementation approach (> 1 week)
+
+### Phase 1: Extend pubky-app-specs (>1 week)
 
 **Tasks:**
 
@@ -38,11 +37,15 @@ owner through `X-PUBKY-ADMIN` properties in the jCal content.
    - `Attendee`
    - `Alarm`
 
+   or create new `PubkyAppVCalendar` types (as in v1-separate-types)
+
 2. Update validation rules:
    - Allow jCal JSON in `content` for calendar kinds
    - Validate `parent` field for events (must point to calendar post)
    - No special validation for `X-PUBKY-ADMIN` (standard jCal extension
      property)
+
+   or create new validation rules for the new post kinds
 
 3. Build and test:
 
@@ -51,8 +54,6 @@ cd pubky-app-specs
 cargo build
 cargo test
 ```
-
----
 
 ### Phase 2: Extend Nexus Indexer (~2-3 weeks)
 

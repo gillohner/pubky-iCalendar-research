@@ -5,14 +5,6 @@ Pubky calendar components. Nexus is responsible for discovering calendar
 relationships, aggregating events from calendar admins, and providing efficient
 query interfaces for calendar applications.
 
-````
-Uncertainties:
-- Should these Event and Calendar types just be a new type of PubkyAppPost
-  instead of their own PubkyAppX?
-- JCal in Content or upload the ICS as PubkyAppFile instead of using JCal
-    format?
-```
-
 ## Index
 
 - [Endpoint Overview](#endpoint-overview)
@@ -110,7 +102,7 @@ List all calendars across the network.
   "skip": 0,
   "limit": 20
 }
-````
+```
 
 ---
 
@@ -1091,7 +1083,8 @@ User-specific aggregation endpoints:
 
 Additional query capabilities:
 
-- Geospatial queries on location/geo properties
+- Geospatial queries on location/geo properties from OSM tags
+  (structured-location tag in jCal)
 - Free/busy time calculations for users based on attendance
 
 ### CalDAV Bridge Integration

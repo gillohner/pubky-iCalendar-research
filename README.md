@@ -83,20 +83,3 @@ architecture and frontend scope:
 | **[prototype-implementation-scope.md](prototype-implementation-scope.md)** | Frontend implementation scope and roadmap      |
 | **[context-references.md](context-references.md)**                         | RFC calendar standards and external references |
 | **[notes.md](notes.md)**                                                   | Development notes and considerations           |
-
-### Decision Documents
-
-| File                                       | Description                   |
-| ------------------------------------------ | ----------------------------- |
-| **[COMPARISON.md](COMPARISON.md)**         | Detailed technical comparison |
-| **[DECISION_GUIDE.md](DECISION_GUIDE.md)** | Quick decision guide          |
-
-### Legacy Root Files
-
-The following files exist at root level for backward compatibility but may not
-reflect latest updates. **Use the version folders instead**
-(`v1-separate-types/` or `v2-post-kinds/`):
-
-- `pubky-ical-specification.md` (legacy)
-- `nexus-endpoints.md` (legacy)
-- `event-examples.md` (legacy)

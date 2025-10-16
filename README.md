@@ -1,8 +1,8 @@
 # Pubky iCalendar Integration Specification
 
-## 🔀 Two Approaches Available
+## 🔀 Three Approaches Available
 
-This repository now documents **two different approaches** for implementing
+This repository documents **three different approaches** for implementing
 calendar functionality in Pubky:
 
 ### **[V1: Separate Types](v1-separate-types/README.md)**
@@ -14,13 +14,26 @@ implementation work.
 ### **[V2: Post Kinds](v2-post-kinds/README.md)**
 
 Extends `PubkyAppPost` with new `kind` enum values (`calendar`, `event`,
-`attendee`). Leverages existing post infrastructure for faster implementation
-and better integration.
+`attendee`). Content is jCal JSON. Leverages existing post infrastructure for
+faster implementation and better integration.
+
+### **[V3: Explicit RFC Fields](v3-explicit-fields/README.md)** ⭐ NEW
+
+Single `PubkyAppEventPost` type with **explicit typed fields** from RFC
+standards (not jCal JSON). Provides compile-time type safety with clear field
+definitions. Includes three implementation options: Complete (~70 fields), MVP
+(~25 fields), or Tiered with feature flags.
+
+## 📊 Detailed Approach Comparison
+
+For a comprehensive side-by-side comparison of all three approaches:
+
+**See**: [APPROACH_COMPARISON.md](APPROACH_COMPARISON.md) ⭐
 
 ```text
 For the prototype implementation a short discussion with someone from the Pubky
 team on which approach to take and what other approaches could be taken (not all
-potential approaches are documented here but the most important decision is on if PubkyAppPostKind should be used or new types should be created) would be helpful for making a decision.
+potential approaches are documented here but the most important decision is on if PubkyAppPostKind should be used or new types should be created) would be helpful for making a decision. Currently I believe a mix between V1 and V3 where we define explicit fields in pubky-app-specs together with seperate types for RSVP and future Alarm extensions would be the best approach.
 ```
 
 ---
@@ -59,10 +72,11 @@ could enable deeper integration into existing workflows, as mentioned before.
 
 ### Version-Specific Folders
 
-| Folder                                       | Description                         | Status                    |
-| -------------------------------------------- | ----------------------------------- | ------------------------- |
-| **[v1-separate-types/](v1-separate-types/)** | Original spec using dedicated types | Complete                  |
-| **[v2-post-kinds/](v2-post-kinds/)**         | Current spec using Post kinds       | Complete + Latest updates |
+| Folder                                                | Description                             | Status                    |
+| ----------------------------------------------------- | --------------------------------------- | ------------------------- |
+| **[v1-separate-types/](v1-separate-types/)**          | Multiple dedicated types (jCal content) | Complete                  |
+| **[v2-post-kinds/](v2-post-kinds/)**                  | PubkyAppPost with kinds (jCal content)  | Complete + Latest updates |
+| **[v3-explicit-fields/](v3-explicit-fields/)** ⭐ NEW | Single type with explicit RFC fields    | Complete + RFC tables     |
 
 **Each version folder contains:**
 

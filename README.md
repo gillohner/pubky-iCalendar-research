@@ -72,11 +72,11 @@ could enable deeper integration into existing workflows, as mentioned before.
 
 ### Version-Specific Folders
 
-| Folder                                                | Description                             | Status                    |
-| ----------------------------------------------------- | --------------------------------------- | ------------------------- |
-| **[v1-separate-types/](v1-separate-types/)**          | Multiple dedicated types (jCal content) | Complete                  |
-| **[v2-post-kinds/](v2-post-kinds/)**                  | PubkyAppPost with kinds (jCal content)  | Complete + Latest updates |
-| **[v3-explicit-fields/](v3-explicit-fields/)** ⭐ NEW | Single type with explicit RFC fields    | Complete + RFC tables     |
+| Folder                                         | Description                             | Status                    |
+| ---------------------------------------------- | --------------------------------------- | ------------------------- |
+| **[v1-separate-types/](v1-separate-types/)**   | Multiple dedicated types (jCal content) | Complete                  |
+| **[v2-post-kinds/](v2-post-kinds/)**           | PubkyAppPost with kinds (jCal content)  | Complete + Latest updates |
+| **[v3-explicit-fields/](v3-explicit-fields/)** | Single type with explicit RFC fields    | Complete + RFC tables     |
 
 **Each version folder contains:**
 

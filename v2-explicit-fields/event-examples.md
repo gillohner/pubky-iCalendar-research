@@ -88,7 +88,8 @@ explicit typed fields.
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong> developments and Bitcoin adoption in Switzerland.</p><p>Topics include:</p><ul><li>Lightning Network updates</li><li>Bitcoin adoption stories</li><li>Technical discussions</li></ul>"
-    }
+    },
+    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
 }
 ```
 
@@ -133,7 +134,8 @@ explicit typed fields.
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Hands-on Lightning Network workshop covering:</p><ul><li>Setting up a Lightning node</li><li>Creating payment channels</li><li>Routing payments</li><li>Best practices for security</li></ul><p><strong>Prerequisites:</strong> Basic understanding of Bitcoin and command line usage.</p>"
-    }
+    },
+    "x_pubky_calendar_uri": "pubky://hal/pub/pubky.app/calendar/0033RDZXVEPNG"
 }
 ```
 
@@ -178,7 +180,8 @@ explicit typed fields.
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>The premier Bitcoin conference in Switzerland featuring:</p><ul><li>Keynote speakers from the Bitcoin community</li><li>Technical presentations on Bitcoin development</li><li>Panel discussions on Bitcoin adoption</li><li>Networking opportunities</li></ul><p><strong>Speakers include:</strong> Satoshi Nakamoto, Hal Finney, Adam Back, and more.</p>"
-    }
+    },
+    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
 }
 ```
 
@@ -498,7 +501,8 @@ explicit typed fields.
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Monthly Bitcoin conference with <strong>industry leaders</strong> and <em>technical workshops</em></p>"
-    }
+    },
+    "x_pubky_calendar_uri": "pubky://adam-back/pub/pubky.app/calendar/0033RCZXVEPNG"
 }
 ```
 

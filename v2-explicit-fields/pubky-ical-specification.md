@@ -49,7 +49,7 @@ pub struct PubkyAppCalendar {
 }
 
 pub struct PubkyAppEvent {
-    // Event fields (13 fields)
+    // Event fields (with linkage)
     pub uid: Option<String>,
     pub dtstamp: Option<i64>,
     pub dtstart: Option<i64>,
@@ -67,22 +67,31 @@ pub struct PubkyAppEvent {
     pub conference: Option<String>,
     pub structured_location: Option<String>,
     pub styled_description: Option<String>,
+
+    // Pubky Linkage
+    pub x_pubky_calendar_uri: Option<String>,
 }
 
 pub struct PubkyAppAttendee {
-    // Attendee fields (4 fields)
+    // Attendee fields (with linkage)
     pub attendee_uri: Option<String>,
     pub attendee_name: Option<String>,
     pub partstat: Option<String>,
     pub role: Option<String>,
+
+    // Pubky Linkage
+    pub x_pubky_event_uri: Option<String>,
 }
 
 pub struct PubkyAppAlarm {
-    // Alarm fields (4 fields)
+    // Alarm fields (with linkage)
     pub action: Option<String>,
     pub trigger: Option<String>,
     pub description: Option<String>,
     pub uid: Option<String>,
+
+    // Pubky Linkage
+    pub x_pubky_target_uri: Option<String>,
 }
 ```
 

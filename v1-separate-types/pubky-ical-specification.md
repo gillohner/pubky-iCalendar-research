@@ -1,8 +1,9 @@
-# Pubky iCalendar Specification (v1.0)
+# Pubky iCalendar Specification (v1.0 - jCal Storage)
 
 ## Index
 
 - [Introduction](#introduction)
+- [Architectural Approach](#architectural-approach)
 - [Background and Motivation](#background-and-motivation)
 - [RFC Tag Usage Throughout This Specification](#rfc-tag-usage-throughout-this-specification)
 - [Homeserver Storage Structure](#homeserver-storage-structure)
@@ -13,19 +14,55 @@
 
 This specification defines the integration of industry-standard iCalendar
 protocols (RFC 5545, RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the
-Pubky ecosystem. By storing calendar components as jCal (JSON) files on user
-homeservers and aggregating them through Nexus, this approach enables
-decentralized calendar functionality while maintaining compatibility with
-existing calendar standards.
+Pubky ecosystem using **separate dedicated types** with **jCal JSON storage**.
 
-This document follows the pubky-app-specs structure and conventions, extending
-them to support calendar collections, events, scheduling, and RSVP workflows.
-All calendar data uses the jCal JSON format (RFC 7265) as the native storage
-format, with pubky:// URLs for addressing users and resources.
+**Key Characteristics:**
 
-The design emphasizes simplicity and extensibility—the core specification is
-lean to facilitate MVP development, while the underlying RFC standards provide a
-path for future enhancements.
+- Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee`,
+  `PubkyAppAlarm` types
+- Stores all calendar data as jCal JSON in a `content` field
+- Separate storage paths for each component type
+- Provides maximum flexibility for future RFC extensions
+
+**Trade-offs:**
+
+- ✅ **Pros**: Maximum flexibility, easy RFC extensions, standard jCal format
+- ❌ **Cons**: Runtime jCal parsing required, less type safety, hidden field
+  structure
+
+## Architectural Approach
+
+### Core Types
+
+```rust
+pub struct PubkyAppCalendar {
+    pub content: String,  // jCal JSON
+}
+
+pub struct PubkyAppEvent {
+    pub content: String,  // jCal JSON
+}
+
+pub struct PubkyAppAttendee {
+    pub content: String,  // jCal JSON
+}
+
+pub struct PubkyAppAlarm {
+    pub content: String,  // jCal JSON
+}
+```
+
+### Storage Paths
+
+- Calendar: `/pub/pubky.app/calendar/:id`
+- Event: `/pub/pubky.app/event/:id`
+- Attendee: `/pub/pubky.app/attendee/:id`
+- Alarm: `/pub/pubky.app/alarm/:id`
+
+### Content Format
+
+All calendar data stored as jCal JSON (RFC 7265) in the `content` field,
+enabling full RFC compliance and easy extension with new properties.
 
 ---
 
@@ -118,15 +155,15 @@ aggregates events from these admin homeservers.
 
 ### Path Organization
 
-Calendar components are stored in a flat structure, with Nexus responsible for
+Calendar components are stored in separate paths, with Nexus responsible for
 aggregating and relating components based on their reference properties:
 
 ```
 /pub/pubky.app/
-  ├── vcalendar/:calendar_id         # Calendar metadata (jCal JSON)
-  ├── vevent/:event_id                # Individual events (jCal JSON)
-  ├── vattendee/:attendee_id          # RSVP/attendance records (jCal JSON)
-  └── valarm/:alarm_id                # User-defined alarms/reminders (jCal JSON)
+  ├── calendar/:calendar_id           # Calendar metadata (jCal JSON)
+  ├── event/:event_id                 # Individual events (jCal JSON)
+  ├── attendee/:attendee_id           # RSVP/attendance records (jCal JSON)
+  └── alarm/:alarm_id                 # User-defined alarms/reminders (jCal JSON)
 ```
 
 ### File Naming Conventions
@@ -151,11 +188,11 @@ Components reference each other through pubky:// URIs:
 ### Example File Paths
 
 ```
-pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG
-pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG
-pubky://hal/pub/pubky.app/vevent/0033TD0XVEPNG
-pubky://alice/pub/pubky.app/vattendee/0033UCZXVEPNG
-pubky://bob/pub/pubky.app/valarm/0033VCZXVEPNG
+pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG
+pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG
+pubky://hal/pub/pubky.app/event/0033TD0XVEPNG
+pubky://alice/pub/pubky.app/attendee/0033UCZXVEPNG
+pubky://bob/pub/pubky.app/alarm/0033VCZXVEPNG
 ```
 
 ### Nexus Aggregation Logic
@@ -178,7 +215,7 @@ Nexus aggregates calendar components based on admin relationships:
 
 ### PubkyAppVCalendar
 
-**Path**: `/pub/pubky.app/vcalendar/:calendar_id`
+**Path**: `/pub/pubky.app/calendar/:calendar_id`
 
 Calendar ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
@@ -186,7 +223,7 @@ microsecond timestamp).
 **UID Generation Strategy**: Calendar UIDs follow a standardized format:
 
 ```
-pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
+pubky://<pubky_userid>/pub/pubky.app/calendar/<calendar_id>
 ```
 
 **Schema Structure**:
@@ -203,7 +240,7 @@ pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
       "uid",
       {},
       "text",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ],
     ["name", {}, "text", "Dezentralschweiz Meetups"],
     [
@@ -247,7 +284,7 @@ pubky://<pubky_userid>/pub/pubky.app/vcalendar/<calendar_id>
 
 ### PubkyAppVEvent
 
-**Path**: `/pub/pubky.app/vevent/:event_id`
+**Path**: `/pub/pubky.app/event/:event_id`
 
 Event ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
@@ -255,7 +292,7 @@ microsecond timestamp).
 **UID Generation Strategy**: Event UIDs follow a standardized format:
 
 ```
-pubky://<pubky_userid>/pub/pubky.app/vevent/<event_id>
+pubky://<pubky_userid>/pub/pubky.app/event/<event_id>
 ```
 
 **Schema Structure**:
@@ -264,7 +301,7 @@ pubky://<pubky_userid>/pub/pubky.app/vevent/<event_id>
 [
   "vevent",
   [
-    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG"],
+    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"],
     ["dtstamp", {}, "date-time", "2025-10-01T12:15:00Z"],
     [
       "dtstart",
@@ -295,7 +332,7 @@ pubky://<pubky_userid>/pub/pubky.app/vevent/<event_id>
       "x-pubky-calendar",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ]
   ],
   []
@@ -368,13 +405,13 @@ Create a separate VEVENT file with modified properties for a specific
 occurrence. The recurrence-id property identifies which instance is being
 overridden.
 
-Path: `pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG`
+Path: `pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG`
 
 ```json
 [
   "vevent",
   [
-    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG"],
+    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"],
     [
       "dtstart",
       { "tzid": "Europe/Zurich" },
@@ -387,7 +424,7 @@ Path: `pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG`
       "x-pubky-calendar",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ]
   ],
   []
@@ -396,13 +433,13 @@ Path: `pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG`
 
 Override for October 16th instance (separate file):
 
-Path: `pubky://satoshi/pub/pubky.app/vevent/0033TCZXVEPNG`
+Path: `pubky://satoshi/pub/pubky.app/event/0033TCZXVEPNG`
 
 ```json
 [
   "vevent",
   [
-    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG"],
+    ["uid", {}, "text", "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"],
     [
       "recurrence-id",
       { "tzid": "Europe/Zurich" },
@@ -427,7 +464,7 @@ Path: `pubky://satoshi/pub/pubky.app/vevent/0033TCZXVEPNG`
       "x-pubky-calendar",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ]
   ],
   []
@@ -449,7 +486,7 @@ Key points for overrides:
 
 ### PubkyAppVAttendee
 
-**Path**: `/pub/pubky.app/vattendee/:attendee_id`
+**Path**: `/pub/pubky.app/attendee/:attendee_id`
 
 Attendee ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
@@ -463,7 +500,7 @@ can create an attendee record for any event.
 [
   "attendee",
   [
-    ["uid", {}, "text", "pubky://alice/pub/pubky.app/vattendee/0033ZCZXVEPNG"],
+    ["uid", {}, "text", "pubky://alice/pub/pubky.app/attendee/0033ZCZXVEPNG"],
     ["dtstamp", {}, "date-time", "2025-10-02T09:30:00Z"],
     [
       "attendee",
@@ -480,13 +517,13 @@ can create an attendee record for any event.
       "x-pubky-calendar",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ],
     [
       "x-pubky-event",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
     ]
   ],
   []
@@ -515,7 +552,7 @@ can create an attendee record for any event.
 
 ### PubkyAppVAlarm
 
-**Path**: `/pub/pubky.app/valarm/:alarm_id`
+**Path**: `/pub/pubky.app/alarm/:alarm_id`
 
 Alarm ID uses **Timestamp ID format** (13-character Crockford Base32 from
 microsecond timestamp).
@@ -530,7 +567,7 @@ notifications.
 [
   "valarm",
   [
-    ["uid", {}, "text", "pubky://bob/pub/pubky.app/valarm/0033WCZXVEPNG"],
+    ["uid", {}, "text", "pubky://bob/pub/pubky.app/alarm/0033WCZXVEPNG"],
     ["action", {}, "text", "DISPLAY"],
     ["trigger", { "related": "START" }, "duration", "-PT15M"],
     ["description", {}, "text", "Bitcoin Meetup in 15 minutes"],
@@ -538,13 +575,13 @@ notifications.
       "x-pubky-calendar",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vcalendar/0033RCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
     ],
     [
       "x-pubky-event",
       {},
       "uri",
-      "pubky://satoshi/pub/pubky.app/vevent/0033SCZXVEPNG"
+      "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
     ]
   ],
   []

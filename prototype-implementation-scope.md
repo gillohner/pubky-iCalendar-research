@@ -91,13 +91,13 @@ Similar to how Meetup.com does it on community pages:
 
 ##### Filter Card Options
 
-| Filter              | Description                                                         |
-| ------------------- | ------------------------------------------------------------------- |
-| Text Search         | Search through all metadata                                         |
-| Structured Location | Limit to a radius or exact cities based on structured location tags |
-| Pubky Tags          | Limit to PubkyAppTags that users assigned to events                 |
-| Date Range          | Limit to events between certain dates. Default is set from today    |
-| ...                 | Extend based on needs                                               |
+| Filter              | Description                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| Text Search         | Search through all metadata                                                                |
+| Structured Location | Limit to a radius or exact cities based on structured location tags with Nominatim OSM API |
+| Pubky Tags          | Limit to PubkyAppTags that users assigned to events                                        |
+| Date Range          | Limit to events between certain dates. Default is set from today                           |
+| ...                 | Extend based on needs                                                                      |
 
 #### Calendar Discovery
 
@@ -178,5 +178,7 @@ Note: Will be extended further and divided into sub-components during developmen
 | iCal Metadata Components | Simple card components for other optional metadata in iCal format                                                                                                                                      |
 | Pubky Tags               | Show tags like Pubky.app                                                                                                                                                                               |
 | Attendees                | Component rendering attendees of an event with their respective status. Inviting attendees to an event will not be implemented yet in event creation. Could be added with existing tags in the future. |
-| Event Creation Modal     | Form to create a new event with image upload and metadata input                                                                                                                                        |
-| Calendar Creation Modal  | Form to create a new calendar with image upload and metadata input                                                                                                                                     |
+| Event Creation Modal*    | Form to create a new event with image upload and metadata input                                                                                                                                        |
+| Calendar Creation Modal* | Form to create a new calendar with image upload and metadata input                                                                                                                                     |
+
+*These modals will be reused for editing events and calendars.

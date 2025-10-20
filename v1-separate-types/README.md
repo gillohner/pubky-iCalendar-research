@@ -1,41 +1,48 @@
-# V1: Separate PubkyApp Types Approach
+# V1: Separate Types (jCal Storage)
 
-This folder contains the original specification that uses **separate PubkyApp
-types** for calendar functionality.
+This approach uses **separate dedicated types** for each calendar component with
+**jCal JSON storage**.
 
 ## Approach
 
-This version defines distinct data structures in `pubky-app-specs`:
+This variant defines distinct data structures in `pubky-app-specs`:
 
 - `PubkyAppCalendar` - For calendar collections
 - `PubkyAppEvent` - For events
 - `PubkyAppAttendee` - For RSVPs
 - `PubkyAppAlarm` - For reminders
 
-Each type has its own:
+Each type stores its data as **jCal JSON** in a `content` field, providing
+maximum flexibility for RFC extensions.
 
-- Data structure definition
-- Validation rules
-- Storage path (e.g., `/pub/pubky.app/calendars/:id`,
-  `/pub/pubky.app/events/:id`)
-- Nexus indexing logic
+## Storage Structure
+
+```
+/pub/pubky.app/
+├── calendar/:calendar_id     # Calendar metadata
+├── event/:event_id           # Individual events
+├── attendee/:attendee_id     # RSVP records
+└── alarm/:alarm_id           # User reminders
+```
 
 ## ✅ Advantages
 
-- **Type Safety**: Strict compile-time validation of calendar data structures
+- **Type Safety**: Strict compile-time validation of component types
+- **Flexibility**: Easy to add new RFC properties via jCal
+- **Standards Compliance**: Full jCal (RFC 7265) support
 - **Clear Separation**: Each component type is completely independent
-- **Explicit Schema**: Clear field definitions for each calendar component
-- **Dedicated Paths**: Separate homeserver paths for different components
+- **Future-Proof**: New RFC extensions require no type changes
 
 ## ❌ Disadvantages
 
 - **More Code**: Requires defining multiple new types and handlers
+- **Runtime Parsing**: jCal JSON parsing required at runtime
 - **Less Integration**: Doesn't leverage existing post infrastructure
-- **Complexity**: More complex Nexus implementation with separate indexing logic
+- **Hidden Structure**: Field definitions hidden in jCal JSON
 
 ## Files in This Folder
 
-**Version-Specific Files:**
+**Variant-Specific Files:**
 
 - `pubky-ical-specification.md` - Complete specification using separate types
 - `nexus-endpoints.md` - Nexus API endpoints for separate types
@@ -43,7 +50,7 @@ Each type has its own:
 
 **Shared Architecture Files** (in root directory):
 
-- `../diagrams.md` - Architecture diagrams (shared between versions)
+- `../diagrams.md` - Architecture diagrams (shared between variants)
 - `../prototype-implementation-scope.md` - Frontend implementation scope
   (shared)
 - `../context-references.md` - External RFC references (shared)
@@ -51,5 +58,5 @@ Each type has its own:
 
 ---
 
-**For comparison with the alternative approach, see**:
-`../v2-post-kinds/README.md`
+**For comparison with the explicit fields approach, see**:
+`../v2-explicit-fields/README.md`

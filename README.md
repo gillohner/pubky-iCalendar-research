@@ -1,49 +1,35 @@
 # Pubky iCalendar Integration Specification
 
-## 🔀 Three Approaches Available
+## 🔀 Two Approaches Available
 
-This repository documents **three different approaches** for implementing
+This repository now documents **two different approaches** for implementing
 calendar functionality in Pubky:
 
-### **[V1: Separate Types](v1-separate-types/README.md)**
+### **[V1: Separate Types (jCal Storage)](v1-separate-types/README.md)**
 
-Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee` types
-with separate storage paths. Provides strong type safety but requires more
-implementation work.
+Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee`,
+`PubkyAppAlarm` types with separate storage paths. Stores all calendar data as
+jCal JSON in a `content` field. Provides maximum flexibility for RFC extensions.
 
-### **[V2: Post Kinds](v2-post-kinds/README.md)**
+### **[V2: Explicit Fields (Typed Storage)](v2-explicit-fields/README.md)**
 
-Extends `PubkyAppPost` with new `kind` enum values (`calendar`, `event`,
-`attendee`). Content is jCal JSON. Leverages existing post infrastructure for
-faster implementation and better integration.
-
-### **[V3: Explicit RFC Fields](v3-explicit-fields/README.md)** ⭐ NEW
-
-Single `PubkyAppEventPost` type with **explicit typed fields** from RFC
-standards (not jCal JSON). Provides compile-time type safety with clear field
-definitions. Includes three implementation options: Complete (~70 fields), MVP
-(~25 fields), or Tiered with feature flags.
-
-## 📊 Detailed Approach Comparison
-
-For a comprehensive side-by-side comparison of all three approaches:
-
-**See**: [APPROACH_COMPARISON.md](APPROACH_COMPARISON.md) ⭐
+Uses dedicated `PubkyAppCalendar`, `PubkyAppEvent`, `PubkyAppAttendee`,
+`PubkyAppAlarm` types with **explicit typed fields** from RFC standards (not
+jCal JSON). Provides compile-time type safety with clear field definitions using
+MVP subset (~25 fields) that can be extended with new fields as needed.
 
 ```text
-For the prototype implementation a short discussion with someone from the Pubky
-team on which approach to take and what other approaches could be taken (not all
-potential approaches are documented here but the most important decision is on if PubkyAppPostKind should be used or new types should be created) would be helpful for making a decision. Currently I believe a mix between V1 and V3 where we define explicit fields in pubky-app-specs together with seperate types for RSVP and future Alarm extensions would be the best approach.
+For the prototype implementation, V2 (Explicit Fields) is currently favored by me because it provides
+better developer experience with compile-time type safety, clearer schema definitions,
+and better performance without runtime JSON parsing. Thus I recommend looking at V2 (Explicit Fields) for the prototype implementation.
 ```
-
----
 
 ## Overview
 
 A specification for integrating industry-standard iCalendar protocols (RFC 5545,
 RFC 7265, RFC 4791, RFC 5546, RFC 7986, RFC 9073) into the Pubky ecosystem,
-enabling decentralized calendar functionality while maintaining compatibility
-with existing CalDAV clients and calendar standards.
+enabling decentralized calendar functionality while maintaining possible
+compatibility with existing CalDAV clients and calendar standards.
 
 ## Background
 
@@ -70,25 +56,25 @@ could enable deeper integration into existing workflows, as mentioned before.
 
 ## 📂 Repository Structure
 
-### Version-Specific Folders
+### Variant-Specific Folders
 
-| Folder                                         | Description                             | Status                    |
-| ---------------------------------------------- | --------------------------------------- | ------------------------- |
-| **[v1-separate-types/](v1-separate-types/)**   | Multiple dedicated types (jCal content) | Complete                  |
-| **[v2-post-kinds/](v2-post-kinds/)**           | PubkyAppPost with kinds (jCal content)  | Complete + Latest updates |
-| **[v3-explicit-fields/](v3-explicit-fields/)** | Single type with explicit RFC fields    | Complete + RFC tables     |
+| Folder                                         | Description                      |
+| ---------------------------------------------- | -------------------------------- |
+| **[v1-separate-types/](v1-separate-types/)**   | Separate types with jCal storage |
+| **[v2-explicit-fields/](v2-explicit-fields/)** | explicit fields                  |
 
-**Each version folder contains:**
+**Each variant folder contains:**
 
 | File                          | Description                                               |
 | ----------------------------- | --------------------------------------------------------- |
-| `pubky-ical-specification.md` | Core technical specification (different for each version) |
-| `nexus-endpoints.md`          | Nexus API endpoints (different for each version)          |
-| `event-examples.md`           | Example calendar data (different structure per version)   |
+| `pubky-ical-specification.md` | Core technical specification (different for each variant) |
+| `nexus-endpoints.md`          | Nexus API endpoints (different for each variant)          |
+| `event-examples.md`           | Example calendar data (different structure per variant)   |
+| `README.md`                   | Variant-specific overview and approach description        |
 
 ### Shared Architecture Files (Root Level)
 
-These files are shared between both versions as they describe general
+These files are shared between both variants as they describe general
 architecture and frontend scope:
 
 | File                                                                       | Description                                    |

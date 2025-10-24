@@ -229,17 +229,31 @@ pub struct PubkyAppAttendee {
     pub attendee_name: Option<String>,     // Display name
     pub partstat: Option<String>,          // NEEDS-ACTION | ACCEPTED | DECLINED | TENTATIVE | DELEGATED
     pub role: Option<String>,              // CHAIR | REQ-PARTICIPANT | OPT-PARTICIPANT | NON-PARTICIPANT
+    
+    // RFC 5545 - Recurrence Support
+    pub recurrence_id: Option<i64>,        // For recurring events, specifies which instance this RSVP applies to
 
     // Pubky Linkage
     pub x_pubky_event_uri: Option<String>, // URI of the event this RSVP belongs to
 }
 
-// Example usage:
-let attendee = PubkyAppAttendee {
+// Example usage - RSVP to all instances:
+let attendee_all = PubkyAppAttendee {
     attendee_uri: Some("pubky://alice".to_string()),
     attendee_name: Some("Alice".to_string()),
     partstat: Some("ACCEPTED".to_string()),
     role: Some("REQ-PARTICIPANT".to_string()),
+    recurrence_id: None, // No recurrence_id = applies to all instances
+    x_pubky_event_uri: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
+};
+
+// Example usage - RSVP to specific instance:
+let attendee_specific = PubkyAppAttendee {
+    attendee_uri: Some("pubky://bob".to_string()),
+    attendee_name: Some("Bob".to_string()),
+    partstat: Some("ACCEPTED".to_string()),
+    role: Some("REQ-PARTICIPANT".to_string()),
+    recurrence_id: Some(1699358400000000), // Specific instance timestamp
     x_pubky_event_uri: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
 };
 ```
@@ -275,45 +289,46 @@ let alarm = PubkyAppAlarm {
 
 ### Fields Used in MVP Implementation
 
-| Field                  | RFC Source | Type        | Description                | Rationale                                  |
-| ---------------------- | ---------- | ----------- | -------------------------- | ------------------------------------------ |
-| **Calendar Fields**    |            |             |                            |                                            |
-| `name`                 | RFC 7986   | String      | Calendar display name      | Essential for calendar identification      |
-| `color`                | RFC 7986   | String      | CSS color value            | Important for visual calendar organization |
-| `x_pubky_admins`       | Custom     | Vec<String> | Calendar admin URIs        | Core to Pubky's decentralized admin model  |
-| `timezone`             | RFC 5545   | String      | IANA timezone ID           | Essential for proper time handling         |
-| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                    |
-| **Event Fields**       |            |             |                            |                                            |
-| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components       |
-| `dtstamp`              | RFC 5545   | i64         | Creation timestamp         | Required for all calendar components       |
-| `dtstart`              | RFC 5545   | i64         | Start timestamp            | Core event timing                          |
-| `dtend`                | RFC 5545   | i64         | End timestamp              | Core event timing                          |
-| `summary`              | RFC 5545   | String      | Event title                | Essential for event identification         |
-| `status`               | RFC 5545   | String      | Event status               | Important for event lifecycle              |
-| `organizer`            | RFC 5545   | String      | Event organizer            | Core to event ownership                    |
-| `categories`           | RFC 5545   | Vec<String> | Event categories           | Useful for event classification            |
-| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                    |
-| `rrule`                | RFC 5545   | String      | Recurrence rule            | Essential for recurring events             |
-| `rdate`                | RFC 5545   | Vec<String> | Recurrence dates           | For additional recurrence instances        |
-| `exdate`               | RFC 5545   | Vec<String> | Exception dates            | For excluding recurrence instances         |
-| `recurrence_id`        | RFC 5545   | i64         | Recurrence instance ID     | For recurrence overrides                   |
-| `image_uri`            | RFC 7986   | String      | Event image URI            | Important for visual event representation  |
-| `conference`           | RFC 7986   | String      | Conference link            | Essential for online events                |
-| `structured_location`  | RFC 9073   | String      | Rich location data         | Better than simple location string         |
-| `styled_description`   | RFC 9073   | String      | Rich text description      | Better than plain text description         |
-| `x_pubky_calendar_uri` | Custom     | String      | Calendar URI               | Explicit linkage for aggregation           |
-| **Attendee Fields**    |            |             |                            |                                            |
-| `attendee_uri`         | RFC 5545   | String      | Attendee URI               | Core attendee identification               |
-| `attendee_name`        | RFC 5545   | String      | Display name               | Human-readable attendee name               |
-| `partstat`             | RFC 5546   | String      | Participation status       | Core RSVP functionality                    |
-| `role`                 | RFC 5546   | String      | Participant role           | Important for attendee roles               |
-| `x_pubky_event_uri`    | Custom     | String      | Event URI                  | Explicit linkage for aggregation           |
-| **Alarm Fields**       |            |             |                            |                                            |
-| `action`               | RFC 5545   | String      | Alarm action type          | Core alarm functionality                   |
-| `trigger`              | RFC 5545   | String      | Alarm trigger              | Core alarm timing                          |
-| `description`          | RFC 5545   | String      | Alarm message              | User-facing alarm text                     |
-| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components       |
-| `x_pubky_target_uri`   | Custom     | String      | Target entity URI          | Explicit linkage for aggregation           |
+| Field                  | RFC Source | Type        | Description                | Rationale                                       |
+| ---------------------- | ---------- | ----------- | -------------------------- | ----------------------------------------------- |
+| **Calendar Fields**    |            |             |                            |                                                 |
+| `name`                 | RFC 7986   | String      | Calendar display name      | Essential for calendar identification           |
+| `color`                | RFC 7986   | String      | CSS color value            | Important for visual calendar organization      |
+| `x_pubky_admins`       | Custom     | Vec<String> | Calendar admin URIs        | Core to Pubky's decentralized admin model       |
+| `timezone`             | RFC 5545   | String      | IANA timezone ID           | Essential for proper time handling              |
+| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                         |
+| **Event Fields**       |            |             |                            |                                                 |
+| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components            |
+| `dtstamp`              | RFC 5545   | i64         | Creation timestamp         | Required for all calendar components            |
+| `dtstart`              | RFC 5545   | i64         | Start timestamp            | Core event timing                               |
+| `dtend`                | RFC 5545   | i64         | End timestamp              | Core event timing                               |
+| `summary`              | RFC 5545   | String      | Event title/subject        | Essential for event identification              |
+| `status`               | RFC 5545   | String      | Event status               | Important for event lifecycle                   |
+| `organizer`            | RFC 5545   | String      | Event organizer            | Core to event ownership                         |
+| `categories`           | RFC 5545   | Vec<String> | Event categories           | Useful for event classification                 |
+| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                         |
+| `rrule`                | RFC 5545   | String      | Recurrence rule            | Essential for recurring events                  |
+| `rdate`                | RFC 5545   | Vec<String> | Recurrence dates           | For additional recurrence instances             |
+| `exdate`               | RFC 5545   | Vec<String> | Exception dates            | For excluding recurrence instances              |
+| `recurrence_id`        | RFC 5545   | i64         | Recurrence instance ID     | For recurrence overrides                        |
+| `image_uri`            | RFC 7986   | String      | Event image URI            | Important for visual event representation       |
+| `conference`           | RFC 7986   | String      | Conference link            | Essential for online events                     |
+| `structured_location`  | RFC 9073   | String      | Rich location data         | Better than simple location string              |
+| `styled_description`   | RFC 9073   | String      | Rich text description      | Better than plain text description              |
+| `x_pubky_calendar_uri` | Custom     | String      | Calendar URI               | Explicit linkage for aggregation                |
+| **Attendee Fields**    |            |             |                            |                                                 |
+| `attendee_uri`         | RFC 5545   | String      | Attendee URI               | Core attendee identification                    |
+| `attendee_name`        | RFC 5545   | String      | Display name               | Human-readable attendee name                    |
+| `partstat`             | RFC 5546   | String      | Participation status       | Core RSVP functionality                         |
+| `role`                 | RFC 5546   | String      | Participant role           | Important for attendee roles                    |
+| `recurrence_id`        | RFC 5545   | i64         | Recurrence instance ID     | Enables per-instance RSVPs for recurring events |
+| `x_pubky_event_uri`    | Custom     | String      | Event URI                  | Explicit linkage for aggregation                |
+| **Alarm Fields**       |            |             |                            |                                                 |
+| `action`               | RFC 5545   | String      | Alarm action type          | Core alarm functionality                        |
+| `trigger`              | RFC 5545   | String      | Alarm trigger              | Core alarm timing                               |
+| `description`          | RFC 5545   | String      | Alarm message              | User-facing alarm text                          |
+| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components            |
+| `x_pubky_target_uri`   | Custom     | String      | Target entity URI          | Explicit linkage for aggregation                |
 
 ### Fields Explicitly Not Used (with Rationale)
 
@@ -406,6 +421,9 @@ let alarm = PubkyAppAlarm {
   `DECLINED`, `TENTATIVE`, `DELEGATED`.
 - `role`: Must be one of: `CHAIR`, `REQ-PARTICIPANT`, `OPT-PARTICIPANT`,
   `NON-PARTICIPANT`.
+- `recurrence_id`: **Optional**. For recurring events, specifies which instance
+  this RSVP applies to. If omitted, the RSVP applies to all instances of the
+  recurring event.
 
 ### Alarm Fields
 

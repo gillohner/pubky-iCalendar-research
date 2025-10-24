@@ -16,14 +16,16 @@
     event would just update to the newest version. => Adds complexity and
     potential merge conflicts...
 - Tagging, Comments, Bookmarks on recurring events?
-  - Should we treat events separately for this? => Design?
-  - More complex
-  - Getting rid of recurring (i.e. Homeserver documents are just generated for
-    each)
-    - Not a fan, as experience has shown that regular meetup hosts forget to add
-      Meetups if they're every week/month, ... (Example: Bern, Thun, Zurich,
-      Ostschweiz Meetups)
-    - What if an instance of an event is overridden? Do tags/comments then
-      change?
-  - Prototype will keep it simple and just aggregate it as a single event, I
-    think.
+  - **RSVP Solution (Solved)**: Using `recurrence-id` in VAttendee allows
+    per-instance RSVPs
+    - No `recurrence-id` = RSVP applies to all instances
+    - With `recurrence-id` = RSVP for that specific occurrence
+    - Users can create multiple VAttendee records for different instances with
+      different statuses
+  - **For Tags/Comments**: Similar approach could work
+    - No `recurrence-id` = applies to the series
+    - With `recurrence-id` = applies to specific instance
+  - **Prototype approach**:
+    - Implement `recurrence-id` in VAttendee for granular RSVPs
+    - For tags/comments, start simple (apply to series), can extend later with
+      `recurrence-id` if needed

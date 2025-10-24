@@ -200,6 +200,8 @@ Retrieve a specific event by ID with attendees and alarms.
 
 - `author_id`: Author Pubky ID (path)
 - `event_id`: Event Crockford32 ID (path)
+- `recurrence_id` (optional): Filter attendees by specific recurring event
+  instance (Unix microseconds)
 
 **Response:**
 
@@ -251,7 +253,18 @@ Retrieve a specific event by ID with attendees and alarms.
             "attendee_uri": "pubky://alice",
             "attendee_name": "Alice",
             "partstat": "ACCEPTED",
-            "role": "REQ-PARTICIPANT"
+            "role": "REQ-PARTICIPANT",
+            "recurrence_id": null
+        },
+        {
+            "id": "0033UDZXVEPNG",
+            "uri": "pubky://bob/pub/pubky.app/attendee/0033UDZXVEPNG",
+            "author": "pubky://bob",
+            "attendee_uri": "pubky://bob",
+            "attendee_name": "Bob",
+            "partstat": "ACCEPTED",
+            "role": "REQ-PARTICIPANT",
+            "recurrence_id": 1699358400000000
         }
     ],
     "alarms": [

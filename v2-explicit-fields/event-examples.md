@@ -187,7 +187,7 @@ explicit typed fields.
 
 ## Attendee Examples
 
-### Alice's RSVP for Bitcoin Meetup
+### Alice's RSVP for All Instances of Bitcoin Meetup
 
 ```json
 {
@@ -203,11 +203,12 @@ explicit typed fields.
     "attendee_name": "Alice",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
+    "recurrence_id": null,
     "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
 }
 ```
 
-### Bob's RSVP for Lightning Workshop
+### Bob's RSVP for Specific Instance of Bitcoin Meetup
 
 ```json
 {
@@ -215,19 +216,22 @@ explicit typed fields.
     "uri": "pubky://bob/pub/pubky.app/attendee/0033UDZXVEPNG",
     "author": "pubky://bob",
     "event": {
-        "id": "0033SDZXVEPNG",
-        "uri": "pubky://hal/pub/pubky.app/event/0033SDZXVEPNG",
-        "summary": "Lightning Network Workshop"
+        "id": "0033SCZXVEPNG",
+        "uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
+        "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://bob",
     "attendee_name": "Bob",
-    "partstat": "TENTATIVE",
-    "role": "OPT-PARTICIPANT",
-    "x_pubky_event_uri": "pubky://hal/pub/pubky.app/event/0033SDZXVEPNG"
+    "partstat": "ACCEPTED",
+    "role": "REQ-PARTICIPANT",
+    "recurrence_id": 1699358400000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
 }
 ```
 
-### Charlie's RSVP for Bitcoin Conference
+### Charlie's Different RSVPs for Different Instances
+
+**Accepted for October 9th:**
 
 ```json
 {
@@ -235,15 +239,37 @@ explicit typed fields.
     "uri": "pubky://charlie/pub/pubky.app/attendee/0033UEZXVEPNG",
     "author": "pubky://charlie",
     "event": {
-        "id": "0033SEZXVEPNG",
-        "uri": "pubky://adam-back/pub/pubky.app/event/0033SEZXVEPNG",
-        "summary": "Bitcoin Conference 2024"
+        "id": "0033SCZXVEPNG",
+        "uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
+        "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://charlie",
     "attendee_name": "Charlie",
     "partstat": "ACCEPTED",
-    "role": "CHAIR",
-    "x_pubky_event_uri": "pubky://adam-back/pub/pubky.app/event/0033SEZXVEPNG"
+    "role": "REQ-PARTICIPANT",
+    "recurrence_id": 1698753600000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
+}
+```
+
+**Declined for October 16th:**
+
+```json
+{
+    "id": "0033UFZXVEPNG",
+    "uri": "pubky://charlie/pub/pubky.app/attendee/0033UFZXVEPNG",
+    "author": "pubky://charlie",
+    "event": {
+        "id": "0033SCZXVEPNG",
+        "uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
+        "summary": "Bitcoin Meetup Zürich"
+    },
+    "attendee_uri": "pubky://charlie",
+    "attendee_name": "Charlie",
+    "partstat": "DECLINED",
+    "role": "REQ-PARTICIPANT",
+    "recurrence_id": 1699358400000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
 }
 ```
 
@@ -531,3 +557,66 @@ All resource references use Pubky URIs in the format
 
 Rich text content is stored as JSON objects with `fmttype` (MIME type) and
 `value` (content) fields, supporting HTML, Markdown, and other formats.
+
+## Recurring Event RSVP Patterns
+
+### Pattern 1: RSVP to All Instances
+
+User commits to attending all occurrences of the recurring event by omitting the
+`recurrence_id` field:
+
+```json
+{
+    "attendee_uri": "pubky://alice",
+    "attendee_name": "Alice",
+    "partstat": "ACCEPTED",
+    "role": "REQ-PARTICIPANT",
+    "recurrence_id": null,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
+}
+```
+
+### Pattern 2: RSVP to Specific Instance
+
+User RSVPs to a single occurrence by including the `recurrence_id` matching that
+instance's timestamp:
+
+```json
+{
+    "attendee_uri": "pubky://bob",
+    "attendee_name": "Bob",
+    "partstat": "ACCEPTED",
+    "role": "REQ-PARTICIPANT",
+    "recurrence_id": 1699358400000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
+}
+```
+
+### Pattern 3: Different Status Per Instance
+
+User creates separate attendee records with different `recurrence_id` values and
+different `partstat`:
+
+**October 9th - Accepted:**
+
+```json
+{
+    "id": "0033UEZXVEPNG",
+    "attendee_uri": "pubky://charlie",
+    "partstat": "ACCEPTED",
+    "recurrence_id": 1698753600000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
+}
+```
+
+**October 16th - Declined:**
+
+```json
+{
+    "id": "0033UFZXVEPNG",
+    "attendee_uri": "pubky://charlie",
+    "partstat": "DECLINED",
+    "recurrence_id": 1699358400000000,
+    "x_pubky_event_uri": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG"
+}
+```

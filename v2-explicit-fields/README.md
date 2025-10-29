@@ -1,62 +1,57 @@
 # V2: Explicit Fields (Typed Storage)
 
-This approach uses **separate dedicated types** with **explicit typed fields**
-instead of jCal JSON storage.
+Separate dedicated types with explicit typed fields instead of jCal JSON.
 
-## Approach
+## Core Types
 
-This version defines distinct data structures in `pubky-app-specs` with explicit
-RFC fields:
-
-- `PubkyAppCalendar` - For calendar collections
-- `PubkyAppEvent` - For events
-- `PubkyAppAttendee` - For RSVPs
-- `PubkyAppAlarm` - For reminders
-
-Each type has **explicit typed fields** for RFC properties, providing
-compile-time type safety and clear schema visibility.
+- `PubkyAppCalendar` - Calendar collections
+- `PubkyAppEvent` - Events
+- `PubkyAppAttendee` - RSVP records
+- `PubkyAppAlarm` - Reminders/notifications
 
 ## Storage Structure
 
 ```
 /pub/pubky.app/
-├── calendar/:calendar_id     # Calendar metadata
-├── event/:event_id           # Individual events
-├── attendee/:attendee_id     # RSVP records
-└── alarm/:alarm_id           # User reminders
+├── calendar/:id     # Calendar metadata
+├── event/:id        # Individual events
+├── attendee/:id     # RSVP records
+└── alarm/:id        # User reminders
 ```
 
-## Field Set
+## Key Fields
 
-Uses **MVP subset** (~25 fields) covering essential calendar functionality:
+**Calendar:** `name` (required), `timezone` (required), `color`, `image_uri`,
+`description`, `url`, `created`, `x_pubky_admins`
 
-- **Calendar fields**: name, color, admins, timezone
-- **Event fields**: uid, timestamps, summary, status, organizer, categories,
-  recurrence, location, description
-- **Attendee fields**: uri, name, status, role
+**Event:** `uid` (required), `dtstamp` (required), `dtstart` (required),
+`summary` (required), `dtend`/`duration`, `description`, `location`, `geo`,
+`structured_locations`, `status`, `organizer`, `categories`, `image_uri`, `url`,
+`conference`, `sequence`, `last_modified`, `created`, `dtstart_tzid`,
+`dtend_tzid`, `rrule`, `rdate`, `exdate`, `recurrence_id`, `styled_description`,
+`x_pubky_calendar_uris`, `x_pubky_rsvp_access`
 
-## ✅ Advantages
+**Attendee:** `attendee_uri` (required), `partstat` (required), `role`, `rsvp`,
+`delegated_from`, `delegated_to`, `recurrence_id`, `x_pubky_event_uri`
+(required)
 
-- **Type Safety**: Compile-time validation of all fields
-- **Explicit Schema**: Clear field definitions visible in code
-- **IDE Support**: Full autocomplete and type checking
-- **Performance**: No runtime JSON parsing required
-- **Clear Structure**: Field purposes are immediately obvious
+**Alarm:** `action` (required), `trigger` (required), `description`, `summary`,
+`attendees`, `repeat`, `duration`, `attach`, `x_pubky_target_uri` (required)
 
-## ❌ Disadvantages
+## Design Principles
 
-- **Less Flexible**: Adding new RFC fields requires type updates
-- **More Code**: Requires defining explicit field structures
-- **Version Updates**: New RFC extensions need code changes
+- **Profile Integration**: Names fetched from `profile.json`, not duplicated
+- **Location Layering**: `location` (text), `geo` (coordinates),
+  `structured_locations` (RFC 9073 VLOCATION array)
+- **Public RSVP**: Anyone can create attendee records (no invite workflow in
+  MVP)
+- **Type Safety**: Explicit Rust structs with compile-time validation
+- **RFC Compliance**: Full RFC 5545/7986/9073 compatibility
 
 ## Documentation
 
-- **[Complete Specification](pubky-ical-specification.md)** - Full technical
-  details with RFC field tables
-- **[Nexus API Endpoints](nexus-endpoints.md)** - API documentation
-- **[Example Data](event-examples.md)** - Sample calendar data
-
-## Comparison
-
-See [APPROACH_COMPARISON.md](../APPROACH_COMPARISON.md) for a detailed
-comparison with the jCal storage approach.
+- **[Specification](pubky-ical-specification.md)** - Complete technical details
+- **[RFC Interoperability](RFC-CalDAV-Interoperability.md)** - Translation guide
+  for iCalendar/CalDAV
+- **[API Endpoints](nexus-endpoints.md)** - Nexus API documentation
+- **[Examples](event-examples.md)** - Sample calendar data

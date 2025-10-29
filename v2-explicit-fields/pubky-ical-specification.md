@@ -25,73 +25,160 @@ fields**.
   `PubkyAppAlarm` types
 - Stores calendar data as explicit typed fields instead of jCal JSON
 - Separate storage paths for each component type
-- Provides compile-time type safety with clear field definitions
-
-**Trade-offs:**
-
-- ✅ **Pros**: Compile-time validation, explicit schema, no runtime parsing,
-  better IDE support
-- ❌ **Cons**: Less flexible for future RFC extensions, requires type updates
-  for new fields
 
 ## Architectural Approach
 
-### Core Types
+### Helper Types
 
 ```rust
+use serde::{Deserialize, Serialize};
+
+// RFC 5545 Organizer - represents event organizer
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Organizer {
+    pub uri: String,                    // REQUIRED Pubky URI (name fetched from profile.json)
+    pub sent_by: Option<String>,        // Pubky URI of delegate sending on behalf of organizer
+}
+
+// RFC 7986 Conference - video/audio conference details
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Conference {
+    pub uri: String,                    // REQUIRED - Conference URL (Zoom, Meet, etc.)
+    pub label: Option<String>,          // Human-readable label (e.g., "Zoom Meeting")
+    pub features: Option<Vec<String>>, // Conference features: AUDIO, VIDEO, CHAT, SCREEN, etc.
+}
+
+// RFC 9073 VLOCATION - structured location component (repeatable)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StructuredLocation {
+    pub name: String,                   // REQUIRED - Location name (e.g., "Insider Bar", "Parking Lot B")
+    pub location_type: Option<String>,  // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, etc.
+    pub address: Option<String>,        // Street address (e.g., "Münstergasse 20, 8001 Zürich")
+    pub uri: Option<String>,            // Reference URI (OSM node, website, etc.)
+    pub description: Option<String>,    // Additional details (e.g., "Second floor, near the bar")
+}
+
+// RFC 9073 Styled Description - formatted content with metadata
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StyledDescription {
+    pub fmttype: Option<String>,        // Media type (e.g., "text/html", "text/markdown")
+    pub value: String,                  // The styled content
+    pub derived: Option<bool>,          // RFC 9073 - TRUE if auto-derived from plain DESCRIPTION
+    pub altrep: Option<String>,         // RFC 9073 - Alternate representation URI
+    pub language: Option<String>,       // RFC 9073 - Language tag (e.g., "en-US")
+}
+```
+
+### Component Types
+
+```rust
+// Calendar container - collection of events
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppCalendar {
-    // Calendar fields (5 fields)
-    pub name: Option<String>,
-    pub color: Option<String>,
-    pub x_pubky_admins: Option<Vec<String>>,
-    pub timezone: Option<String>,
-    pub created: Option<i64>,
+    // RFC 7986 - Calendar Properties
+    pub name: String,                      // REQUIRED - calendar display name
+    pub color: Option<String>,             // CSS color value (hex format)
+    pub image_uri: Option<String>,         // Calendar image/logo URI (pubky:// or https)
+
+    // RFC 5545 - Calendar Metadata
+    pub timezone: Option<String>,          // IANA timezone ID (e.g., "Europe/Zurich")
+    pub description: Option<String>,       // Calendar description
+    pub url: Option<String>,               // Calendar homepage/details URL
+    pub created: Option<i64>,              // Creation timestamp (Unix microseconds)
+
+    // Pubky Extensions (all custom fields use x_pubky_ prefix)
+    pub x_pubky_admins: Option<Vec<String>>,  // Pubky URIs of admin users
 }
 
+// Event - a scheduled activity or occasion
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppEvent {
-    // Event fields (with linkage)
-    pub uid: Option<String>,
-    pub dtstamp: Option<i64>,
-    pub dtstart: Option<i64>,
-    pub dtend: Option<i64>,
-    pub summary: Option<String>,
-    pub status: Option<String>,
-    pub organizer: Option<String>,
-    pub categories: Option<Vec<String>>,
-    pub image_uri: Option<String>,
-    pub created: Option<i64>,
-    pub rrule: Option<String>,
-    pub rdate: Option<Vec<String>>,
-    pub exdate: Option<Vec<String>>,
-    pub recurrence_id: Option<i64>,
-    pub conference: Option<String>,
-    pub structured_location: Option<String>,
-    pub styled_description: Option<String>,
+    // RFC 5545 - Core Event Properties (REQUIRED)
+    pub uid: String,                    // Globally unique identifier
+    pub dtstamp: i64,                   // Creation/last-modified timestamp (Unix microseconds)
+    pub dtstart: i64,                   // Start timestamp (Unix microseconds)
+    pub summary: String,                // Event title/subject
 
-    // Pubky Linkage
-    pub x_pubky_calendar_uri: Option<String>,
+    // RFC 5545 - Time & Duration
+    pub dtend: Option<i64>,             // End timestamp (mutually exclusive with duration)
+    pub duration: Option<String>,       // RFC 5545 duration format (mutually exclusive with dtend)
+    pub dtstart_tzid: Option<String>,   // IANA timezone for dtstart (e.g., "Europe/Zurich")
+    pub dtend_tzid: Option<String>,     // IANA timezone for dtend
+
+    // RFC 5545 - Event Details
+    pub description: Option<String>,    // Plain text description
+    pub status: Option<String>,         // CONFIRMED | TENTATIVE | CANCELLED
+    pub organizer: Option<Organizer>,   // Event organizer (name from profile.json)
+    pub categories: Option<Vec<String>>, // Event categories/tags
+    
+    // RFC 5545 - Location
+    pub location: Option<String>,       // Primary location text (RFC 5545 LOCATION property)
+    pub geo: Option<String>,            // Geographic coordinates "lat;lon" (RFC 5545 GEO property)
+    pub structured_locations: Option<Vec<StructuredLocation>>, // RFC 9073 VLOCATION components (repeatable)
+    
+    // RFC 7986 - Event Publishing Extensions
+    pub image_uri: Option<String>,      // Event image/banner URI
+    pub url: Option<String>,            // Event homepage/details link
+    pub conference: Option<Conference>, // Video/audio conference details
+
+    // RFC 5545 - Change Management
+    pub sequence: Option<i32>,          // Version number (increment on modifications)
+    pub last_modified: Option<i64>,     // Last modification timestamp
+    pub created: Option<i64>,           // Creation timestamp
+
+    // RFC 5545 - Recurrence
+    pub rrule: Option<String>,          // Recurrence rule (RFC 5545 format)
+    pub rdate: Option<Vec<String>>,     // Additional recurrence dates
+    pub exdate: Option<Vec<String>>,    // Excluded recurrence dates
+    pub recurrence_id: Option<i64>,     // Identifies specific recurrence instance
+
+    // RFC 9073 - Rich Content
+    pub styled_description: Option<StyledDescription>, // Formatted description with metadata
+
+    // Pubky Extensions (all custom fields use x_pubky_ prefix)
+    pub x_pubky_calendar_uris: Option<Vec<String>>, // URIs of calendars containing this event
+    pub x_pubky_rsvp_access: Option<String>, // RSVP access control: "PUBLIC" (default, anyone can RSVP)
+                                                      // Future: "INVITE_ONLY", "CONFIRMED_ONLY"
 }
 
+// Attendee - an RSVP/participation record for an event
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppAttendee {
-    // Attendee fields (with linkage)
-    pub attendee_uri: Option<String>,
-    pub attendee_name: Option<String>,
-    pub partstat: Option<String>,
-    pub role: Option<String>,
+    // RFC 5545 - Attendee Properties
+    pub attendee_uri: String,           // REQUIRED - Pubky URI of attendee (name from profile.json)
+                                        // Note: Kept separate from storage path for delegation & import support
+    pub partstat: String,               // REQUIRED - NEEDS-ACTION | ACCEPTED | DECLINED | TENTATIVE
+    pub role: Option<String>,           // CHAIR | REQ-PARTICIPANT | OPT-PARTICIPANT | NON-PARTICIPANT
+    pub rsvp: Option<bool>,             // true when RSVP is requested/expected
+    pub delegated_from: Option<String>, // Pubky URI (for future delegation support)
+    pub delegated_to: Option<String>,   // Pubky URI (for future delegation support)
 
-    // Pubky Linkage
-    pub x_pubky_event_uri: Option<String>,
+    // RFC 5545 - Recurrence Support
+    pub recurrence_id: Option<i64>,     // For recurring events, specifies which instance
+
+    // Pubky Extensions
+    pub x_pubky_event_uri: String,      // REQUIRED - URI of the event this RSVP belongs to
 }
 
+// Alarm - a notification/reminder for an event
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppAlarm {
-    // Alarm fields (with linkage)
-    pub action: Option<String>,
-    pub trigger: Option<String>,
-    pub description: Option<String>,
-    pub uid: Option<String>,
+    // RFC 5545 - Alarm Properties
+    pub action: String,                 // REQUIRED - AUDIO | DISPLAY | EMAIL
+    pub trigger: String,                // REQUIRED - Duration (e.g., "-PT15M") or absolute time
+    pub description: Option<String>,    // REQUIRED for DISPLAY and EMAIL actions
+    pub summary: Option<String>,        // REQUIRED for EMAIL action (email subject)
+    pub attendees: Option<Vec<String>>, // REQUIRED for EMAIL action (email recipients)
 
-    // Pubky Linkage
-    pub x_pubky_target_uri: Option<String>,
+    // RFC 5545 - Repeat Functionality
+    pub repeat: Option<i32>,            // Number of additional repetitions
+    pub duration: Option<String>,       // Delay between repetitions (RFC 5545 duration format)
+    
+    // RFC 5545 - Attachments
+    pub attach: Option<Vec<String>>,    // URIs to attachments (audio file for AUDIO, files for EMAIL)
+
+    // Pubky Extensions
+    pub x_pubky_target_uri: String,     // REQUIRED - Target event or calendar URI
 }
 ```
 
@@ -126,6 +213,95 @@ By using explicit typed fields instead of jCal JSON storage, we gain:
 The trade-off is reduced flexibility for future RFC extensions, as new fields
 require type updates rather than just jCal property additions.
 
+### Location Data Strategy
+
+**Three-tier location approach** matching RFC 5545 and RFC 9073:
+
+#### 1. `location` (RFC 5545 LOCATION property)
+
+- **Purpose**: Primary human-readable location text
+- **Format**: Plain text string
+- **Use**: Single-line location description for event listings
+- **Example**: `"Insider Bar, Münstergasse 20, Zürich"`
+
+#### 2. `geo` (RFC 5545 GEO property)
+
+- **Purpose**: Geographic coordinates for map display and proximity search
+- **Format**: `"latitude;longitude"` (semicolon-separated decimals)
+- **Use**: Map display, radius search, navigation
+- **Example**: `"47.366667;8.550000"`
+
+#### 3. `structured_locations` (RFC 9073 VLOCATION components)
+
+- **Purpose**: Repeatable structured location data for complex events
+- **Format**: Array of `StructuredLocation` objects
+- **Fields per location**:
+  - `name`: Location name (REQUIRED)
+  - `location_type`: ARRIVAL, DEPARTURE, PARKING, etc.
+  - `address`: Street address
+  - `uri`: OSM node, website, etc.
+  - `description`: Additional instructions
+- **Use cases**:
+  - Events with multiple locations (arrival venue, parking, departure point)
+  - OSM integration with full structured data
+  - Detailed venue information
+
+#### Frontend OSM Integration
+
+**Simple event** (single location):
+
+```typescript
+// OSM lookup populates all three fields:
+event.location = "Insider Bar, Münstergasse 20, Zürich"; // Primary text
+event.geo = "47.366667;8.550000"; // Coordinates
+event.structured_locations = [{ // Structured data
+    name: "Insider Bar",
+    location_type: "ARRIVAL",
+    address: "Münstergasse 20, 8001 Zürich, Switzerland",
+    uri: "https://www.openstreetmap.org/node/123456789",
+    description: null,
+}];
+```
+
+**Complex event** (multiple locations):
+
+```typescript
+event.location = "Insider Bar, Münstergasse 20, Zürich"; // Primary venue
+event.geo = "47.366667;8.550000"; // Primary coordinates
+event.structured_locations = [
+    {
+        name: "Insider Bar",
+        location_type: "ARRIVAL", // Main event venue
+        address: "Münstergasse 20, 8001 Zürich",
+        uri: "https://www.openstreetmap.org/node/123456789",
+    },
+    {
+        name: "Parking Garage Urania",
+        location_type: "PARKING", // Parking location
+        address: "Uraniastrasse 3, 8001 Zürich",
+        uri: "https://www.openstreetmap.org/way/987654321",
+        description: "Hourly parking available",
+    },
+];
+```
+
+#### RFC 9073 VLOCATION Compatibility
+
+Our approach **implements RFC 9073 VLOCATION** with pragmatic simplifications:
+
+**RFC 9073 VLOCATION:**
+
+- Separate component with UID
+- Multiple VLOCATIONs per event
+- LOCATION-TYPE property
+
+**Our implementation:**
+
+- Embedded array (not separate components)
+- No UID needed (locations bound to event)
+- LOCATION-TYPE as field in struct
+- **Fully convertible** to/from RFC 9073 VLOCATION components
+
 ---
 
 ## Type Definitions
@@ -133,33 +309,22 @@ require type updates rather than just jCal property additions.
 ### PubkyAppCalendar
 
 ```rust
-use serde::{Deserialize, Serialize};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppCalendar {
     // RFC 7986 - Calendar Properties
-    pub name: Option<String>,              // Calendar display name
-    pub color: Option<String>,             // CSS color value (hex)
-    
-    // Custom Pubky Extensions
-    pub x_pubky_admins: Option<Vec<String>>,  // Pubky URIs of admin users
+    pub name: String,                      // REQUIRED - calendar display name
+    pub color: Option<String>,             // CSS color value (hex format)
+    pub image_uri: Option<String>,         // Calendar image/logo URI (pubky:// or https)
     
     // RFC 5545 - Calendar Metadata
-    pub timezone: Option<String>,          // IANA timezone ID
-    pub created: Option<i64>,              // Unix microseconds
+    pub timezone: String,                  // REQUIRED - IANA timezone ID (e.g., "Europe/Zurich")
+    pub description: Option<String>,       // Calendar description
+    pub url: Option<String>,               // Calendar homepage URL
+    pub created: Option<i64>,              // Creation timestamp (Unix microseconds)
+    
+    // Pubky Extensions
+    pub x_pubky_admins: Option<Vec<String>>,  // Pubky URIs of admin users
 }
-
-// Example usage:
-let calendar = PubkyAppCalendar {
-    name: Some("Bitcoin Switzerland Events".to_string()),
-    color: Some("#F7931A".to_string()),
-    x_pubky_admins: Some(vec![
-        "pubky://satoshi".to_string(),
-        "pubky://adam-back".to_string(),
-    ]),
-    timezone: Some("Europe/Zurich".to_string()),
-    created: Some(1698753600000000), // 2023-10-31T12:00:00Z
-};
 ```
 
 ### PubkyAppEvent
@@ -167,55 +332,146 @@ let calendar = PubkyAppCalendar {
 ```rust
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppEvent {
-    // RFC 5545 - Core Event Properties
-    pub uid: Option<String>,               // Globally unique identifier
-    pub dtstamp: Option<i64>,              // Creation timestamp (microseconds)
-    pub dtstart: Option<i64>,              // Start timestamp (microseconds)
-    pub dtend: Option<i64>,                // End timestamp (microseconds)
-    pub summary: Option<String>,           // Event title/subject
+    // RFC 5545 - Core Event Properties (REQUIRED)
+    pub uid: String,                       // Globally unique identifier
+    pub dtstamp: i64,                      // Creation timestamp (microseconds)
+    pub dtstart: i64,                      // Start timestamp (microseconds)
+    pub summary: String,                   // Event title/subject
+    
+    // RFC 5545 - Time & Duration
+    pub dtend: Option<i64>,                // End timestamp (mutually exclusive with duration)
+    pub duration: Option<String>,          // RFC 5545 duration format (e.g., "PT1H30M")
+    pub dtstart_tzid: Option<String>,      // IANA timezone for dtstart (e.g., "Europe/Zurich")
+    pub dtend_tzid: Option<String>,        // IANA timezone for dtend
+    
+    // RFC 5545 - Event Details
+    pub description: Option<String>,       // Plain text description
     pub status: Option<String>,            // CONFIRMED | TENTATIVE | CANCELLED
-    pub organizer: Option<String>,         // JSON: {"uri": "...", "name": "..."}
-    pub categories: Option<Vec<String>>,   // Event categories
-    pub created: Option<i64>,              // Creation timestamp (microseconds)
+    pub organizer: Option<Organizer>,      // Event organizer (name from profile.json)
+    pub categories: Option<Vec<String>>,   // Event categories/tags
+    
+    // RFC 5545 - Location
+    pub location: Option<String>,          // Primary location text (RFC 5545 LOCATION property)
+    pub geo: Option<String>,               // Geographic coordinates "lat;lon" (RFC 5545 GEO property)
+    pub structured_locations: Option<Vec<StructuredLocation>>, // RFC 9073 VLOCATION components (repeatable)
+    
+    // RFC 7986 - Event Publishing Extensions
+    pub image_uri: Option<String>,         // Event image/banner URI
+    pub url: Option<String>,               // Event homepage/details link
+    pub conference: Option<Conference>,    // Video/audio conference details
+    
+    // RFC 5545 - Change Management
+    pub sequence: Option<i32>,             // Version number (increment on modifications)
+    pub last_modified: Option<i64>,        // Last modification timestamp
+    pub created: Option<i64>,              // Creation timestamp
     
     // RFC 5545 - Recurrence
-    pub rrule: Option<String>,             // RFC 5545 RRULE string
-    pub rdate: Option<Vec<String>>,        // Recurrence dates (JSON array)
-    pub exdate: Option<Vec<String>>,       // Exception dates (JSON array)
-    pub recurrence_id: Option<i64>,        // For recurrence instances
+    pub rrule: Option<String>,             // Recurrence rule (RFC 5545 format)
+    pub rdate: Option<Vec<String>>,        // Additional recurrence dates
+    pub exdate: Option<Vec<String>>,       // Excluded recurrence dates
+    pub recurrence_id: Option<i64>,        // Identifies specific recurrence instance
     
-    // RFC 7986 - Modern Event Properties
-    pub image_uri: Option<String>,         // Event image URI
-    pub conference: Option<String>,        // JSON: {"uri": "...", "label": "..."}
-    
-    // RFC 9073 - Event Publishing Extensions
-    pub structured_location: Option<String>, // JSON object (see below)
-    pub styled_description: Option<String>, // JSON: {"fmttype": "text/html", "value": "..."}
+    // RFC 9073 - Rich Content
+    pub styled_description: Option<StyledDescription>, // Formatted description with metadata
 
-    // Pubky Linkage - explicit references for aggregation
-    pub x_pubky_calendar_uri: Option<String>, // URI of the calendar this event belongs to
+    // Pubky Extensions
+    pub x_pubky_calendar_uris: Option<Vec<String>>, // URIs of calendars containing this event
+    pub x_pubky_rsvp_access: Option<String>, // "PUBLIC" (default) | "INVITE_ONLY" | "CONFIRMED_ONLY"
+}
+```
+
+### Supporting Types
+
+```rust
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Organizer {
+    pub uri: String,                       // REQUIRED Pubky URI (name fetched from profile.json)
+    pub sent_by: Option<String>,           // Pubky URI of delegate sending on behalf
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Conference {
+    pub uri: String,                       // REQUIRED - Conference URL (Zoom, Meet, etc.)
+    pub label: Option<String>,             // Human-readable label
+    pub features: Option<Vec<String>>,     // Conference features: AUDIO, VIDEO, CHAT, SCREEN, etc.
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StructuredLocation {
+    pub name: String,                      // REQUIRED - Location name
+    pub location_type: Option<String>,     // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, etc.
+    pub address: Option<String>,           // Street address
+    pub uri: Option<String>,               // Reference URI (OSM node, website, etc.)
+    pub description: Option<String>,       // Additional instructions
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VLocation {
+    pub name: String,                      // REQUIRED - Location name (RFC 9073 NAME property)
+    pub location_type: Option<String>,     // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, VIRTUAL, etc.
+    pub address: Option<String>,           // Street address
+    pub uri: Option<String>,               // Reference URI (OSM node, geo: URI, website, etc.)
+    pub description: Option<String>,       // Additional instructions or details
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StyledDescription {
+    pub fmttype: Option<String>,           // Media type (e.g., "text/html", "text/markdown")
+    pub value: String,                     // The styled content
+    pub derived: Option<bool>,             // RFC 9073 - TRUE if auto-derived from DESCRIPTION
+    pub altrep: Option<String>,            // RFC 9073 - Alternate representation URI
+    pub language: Option<String>,          // RFC 9073 - Language tag (e.g., "en-US")
 }
 
 // Example usage:
 let event = PubkyAppEvent {
-    uid: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
-    dtstamp: Some(1698753600000000),
-    dtstart: Some(1698753600000000),
+    uid: "20231031-satoshi-001@pubky".to_string(),
+    dtstamp: 1698753600000000,
+    dtstart: 1698757200000000,
+    summary: "Bitcoin Meetup Zürich".to_string(),
     dtend: Some(1698764400000000),
-    summary: Some("Bitcoin Meetup Zürich".to_string()),
+    duration: None,
+    description: Some("Weekly Bitcoin meetup discussing Lightning Network".to_string()),
+    location: Some("Insider Bar, Zürich".to_string()),
+    geo: Some("47.366667;8.550000".to_string()),
+    structured_locations: Some(vec![VLocation {
+        name: "Insider Bar".to_string(),
+        location_type: Some("ARRIVAL".to_string()),
+        address: Some("Münstergasse 20, 8001 Zürich".to_string()),
+        uri: Some("https://www.openstreetmap.org/node/123456789".to_string()),
+        description: Some("Main venue, second floor".to_string()),
+    }]),
     status: Some("CONFIRMED".to_string()),
-    organizer: Some(r#"{"uri": "pubky://satoshi", "name": "Satoshi"}"#.to_string()),
+    organizer: Some(Organizer {
+        uri: "pubky://satoshi".to_string(),  // Name fetched from profile.json
+        sent_by: None,
+    }),
     categories: Some(vec!["bitcoin".to_string(), "meetup".to_string()]),
     created: Some(1698753600000000),
+    sequence: Some(0),
+    last_modified: Some(1698753600000000),
+    url: Some("https://bitcoin.ch/meetup/zurich".to_string()),
+    dtstart_tzid: Some("Europe/Zurich".to_string()),
+    dtend_tzid: Some("Europe/Zurich".to_string()),
     rrule: Some("FREQ=WEEKLY;BYDAY=WE".to_string()),
     rdate: None,
     exdate: None,
     recurrence_id: None,
     image_uri: Some("pubky://satoshi/pub/pubky.app/files/0033EVENT01".to_string()),
-    conference: Some(r#"{"uri": "https://meet.jit.si/bitcoin-zurich", "label": "Jitsi Meeting"}"#.to_string()),
-    structured_location: Some(r#"{"uri": "geo:47.366667,8.550000", "name": "Insider Bar", "description": "Main venue"}"#.to_string()),
-    styled_description: Some(r#"{"fmttype": "text/html", "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"}"#.to_string()),
-    x_pubky_calendar_uri: Some("pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG".to_string()),
+    conference: Some(Conference {
+        uri: "https://meet.jit.si/bitcoin-zurich".to_string(),
+        label: Some("Jitsi Meeting".to_string()),
+        features: Some(vec!["AUDIO".to_string(), "VIDEO".to_string()]),
+    }),
+    styled_description: Some(StyledDescription {
+        fmttype: Some("text/html".to_string()),
+        value: "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>".to_string(),
+        derived: None,
+        altrep: None,
+        language: Some("en-US".to_string()),
+    }),
+    x_pubky_calendar_uris: Some(vec!["pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG".to_string()]),
+    x_pubky_rsvp_access: Some("PUBLIC".to_string()),
 };
 ```
 
@@ -224,37 +480,46 @@ let event = PubkyAppEvent {
 ```rust
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppAttendee {
+    // Public RSVP model: anyone can create an attendee record for any public event
+    // No invitation workflow - simple attendance tracking
+    
     // RFC 5545 / 5546 - Attendee/RSVP Properties
-    pub attendee_uri: Option<String>,      // Pubky URI of attendee
-    pub attendee_name: Option<String>,     // Display name
-    pub partstat: Option<String>,          // NEEDS-ACTION | ACCEPTED | DECLINED | TENTATIVE | DELEGATED
-    pub role: Option<String>,              // CHAIR | REQ-PARTICIPANT | OPT-PARTICIPANT | NON-PARTICIPANT
+    pub attendee_uri: String,              // REQUIRED - Pubky URI of attendee (name from profile.json)
+    pub partstat: String,                  // REQUIRED - ACCEPTED | DECLINED | TENTATIVE | NEEDS-ACTION
+    pub role: Option<String>,              // REQ-PARTICIPANT | OPT-PARTICIPANT | NON-PARTICIPANT
+    pub rsvp: Option<bool>,                // true when RSVP requested/supported
+    pub delegated_from: Option<String>,    // Pubky URI (for future delegation support)
+    pub delegated_to: Option<String>,      // Pubky URI (for future delegation support)
     
     // RFC 5545 - Recurrence Support
     pub recurrence_id: Option<i64>,        // For recurring events, specifies which instance this RSVP applies to
 
     // Pubky Linkage
-    pub x_pubky_event_uri: Option<String>, // URI of the event this RSVP belongs to
+    pub x_pubky_event_uri: String,         // REQUIRED - URI of the event this RSVP belongs to
 }
 
 // Example usage - RSVP to all instances:
 let attendee_all = PubkyAppAttendee {
-    attendee_uri: Some("pubky://alice".to_string()),
-    attendee_name: Some("Alice".to_string()),
-    partstat: Some("ACCEPTED".to_string()),
+    attendee_uri: "pubky://alice".to_string(),
+    partstat: "ACCEPTED".to_string(),
     role: Some("REQ-PARTICIPANT".to_string()),
+    rsvp: None,
+    delegated_from: None,
+    delegated_to: None,
     recurrence_id: None, // No recurrence_id = applies to all instances
-    x_pubky_event_uri: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
+    x_pubky_event_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
 };
 
 // Example usage - RSVP to specific instance:
 let attendee_specific = PubkyAppAttendee {
-    attendee_uri: Some("pubky://bob".to_string()),
-    attendee_name: Some("Bob".to_string()),
-    partstat: Some("ACCEPTED".to_string()),
+    attendee_uri: "pubky://bob".to_string(),
+    partstat: "ACCEPTED".to_string(),
     role: Some("REQ-PARTICIPANT".to_string()),
+    rsvp: None,
+    delegated_from: None,
+    delegated_to: None,
     recurrence_id: Some(1699358400000000), // Specific instance timestamp
-    x_pubky_event_uri: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
+    x_pubky_event_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
 };
 ```
 
@@ -264,22 +529,32 @@ let attendee_specific = PubkyAppAttendee {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PubkyAppAlarm {
     // RFC 5545 - Alarm Properties
-    pub action: Option<String>,            // AUDIO | DISPLAY | EMAIL
-    pub trigger: Option<String>,           // Duration or absolute time
+    pub action: String,                    // REQUIRED - AUDIO | DISPLAY | EMAIL
+    pub trigger: String,                   // REQUIRED - Duration (e.g., "-PT15M") or absolute time
     pub description: Option<String>,       // Alarm message text
-    pub uid: Option<String>,               // Globally unique identifier
+    pub summary: Option<String>,           // Email subject (for EMAIL action)
+    pub attendees: Option<Vec<String>>,    // Email recipients (for EMAIL action)
+    
+    // RFC 5545 - Repeat functionality
+    pub repeat: Option<i32>,               // Number of times to repeat alarm
+    pub duration: Option<String>,          // Interval between repeats (e.g., "PT5M")
+    pub attach: Option<String>,            // Sound file or attachment URI
 
     // Pubky Linkage
-    pub x_pubky_target_uri: Option<String>, // Target event or calendar URI
+    pub x_pubky_target_uri: String,        // REQUIRED - Target event or calendar URI
 }
 
 // Example usage:
 let alarm = PubkyAppAlarm {
-    action: Some("DISPLAY".to_string()),
-    trigger: Some("-PT15M".to_string()), // 15 minutes before
+    action: "DISPLAY".to_string(),
+    trigger: "-PT15M".to_string(), // 15 minutes before
     description: Some("Bitcoin Meetup in 15 minutes".to_string()),
-    uid: Some("pubky://bob/pub/pubky.app/alarm/0033WCZXVEPNG".to_string()),
-    x_pubky_target_uri: Some("pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string()),
+    summary: None,
+    attendees: None,
+    repeat: Some(2),               // Repeat 2 more times
+    duration: Some("PT5M".to_string()), // Every 5 minutes
+    attach: None,
+    x_pubky_target_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
 };
 ```
 
@@ -289,105 +564,65 @@ let alarm = PubkyAppAlarm {
 
 ### Fields Used in MVP Implementation
 
-| Field                  | RFC Source | Type        | Description                | Rationale                                       |
-| ---------------------- | ---------- | ----------- | -------------------------- | ----------------------------------------------- |
-| **Calendar Fields**    |            |             |                            |                                                 |
-| `name`                 | RFC 7986   | String      | Calendar display name      | Essential for calendar identification           |
-| `color`                | RFC 7986   | String      | CSS color value            | Important for visual calendar organization      |
-| `x_pubky_admins`       | Custom     | Vec<String> | Calendar admin URIs        | Core to Pubky's decentralized admin model       |
-| `timezone`             | RFC 5545   | String      | IANA timezone ID           | Essential for proper time handling              |
-| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                         |
-| **Event Fields**       |            |             |                            |                                                 |
-| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components            |
-| `dtstamp`              | RFC 5545   | i64         | Creation timestamp         | Required for all calendar components            |
-| `dtstart`              | RFC 5545   | i64         | Start timestamp            | Core event timing                               |
-| `dtend`                | RFC 5545   | i64         | End timestamp              | Core event timing                               |
-| `summary`              | RFC 5545   | String      | Event title/subject        | Essential for event identification              |
-| `status`               | RFC 5545   | String      | Event status               | Important for event lifecycle                   |
-| `organizer`            | RFC 5545   | String      | Event organizer            | Core to event ownership                         |
-| `categories`           | RFC 5545   | Vec<String> | Event categories           | Useful for event classification                 |
-| `created`              | RFC 5545   | i64         | Creation timestamp         | Standard metadata field                         |
-| `rrule`                | RFC 5545   | String      | Recurrence rule            | Essential for recurring events                  |
-| `rdate`                | RFC 5545   | Vec<String> | Recurrence dates           | For additional recurrence instances             |
-| `exdate`               | RFC 5545   | Vec<String> | Exception dates            | For excluding recurrence instances              |
-| `recurrence_id`        | RFC 5545   | i64         | Recurrence instance ID     | For recurrence overrides                        |
-| `image_uri`            | RFC 7986   | String      | Event image URI            | Important for visual event representation       |
-| `conference`           | RFC 7986   | String      | Conference link            | Essential for online events                     |
-| `structured_location`  | RFC 9073   | String      | Rich location data         | Better than simple location string              |
-| `styled_description`   | RFC 9073   | String      | Rich text description      | Better than plain text description              |
-| `x_pubky_calendar_uri` | Custom     | String      | Calendar URI               | Explicit linkage for aggregation                |
-| **Attendee Fields**    |            |             |                            |                                                 |
-| `attendee_uri`         | RFC 5545   | String      | Attendee URI               | Core attendee identification                    |
-| `attendee_name`        | RFC 5545   | String      | Display name               | Human-readable attendee name                    |
-| `partstat`             | RFC 5546   | String      | Participation status       | Core RSVP functionality                         |
-| `role`                 | RFC 5546   | String      | Participant role           | Important for attendee roles                    |
-| `recurrence_id`        | RFC 5545   | i64         | Recurrence instance ID     | Enables per-instance RSVPs for recurring events |
-| `x_pubky_event_uri`    | Custom     | String      | Event URI                  | Explicit linkage for aggregation                |
-| **Alarm Fields**       |            |             |                            |                                                 |
-| `action`               | RFC 5545   | String      | Alarm action type          | Core alarm functionality                        |
-| `trigger`              | RFC 5545   | String      | Alarm trigger              | Core alarm timing                               |
-| `description`          | RFC 5545   | String      | Alarm message              | User-facing alarm text                          |
-| `uid`                  | RFC 5545   | String      | Globally unique identifier | Required for all calendar components            |
-| `x_pubky_target_uri`   | Custom     | String      | Target entity URI          | Explicit linkage for aggregation                |
-
-### Fields Explicitly Not Used (with Rationale)
-
-| Field                                      | RFC Source | Rationale for Exclusion                                               |
-| ------------------------------------------ | ---------- | --------------------------------------------------------------------- |
-| **RFC 5545 - Core Properties**             |            |                                                                       |
-| `description`                              | RFC 5545   | Replaced by `styled_description` (RFC 9073) for better formatting     |
-| `location`                                 | RFC 5545   | Replaced by `structured_location` (RFC 9073) for richer location data |
-| `geo`                                      | RFC 5545   | Covered by `structured_location` which includes coordinates           |
-| `url`                                      | RFC 5545   | Not essential for MVP, can be added later                             |
-| `last_modified`                            | RFC 5545   | Not essential for MVP, can be added later                             |
-| `sequence`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `priority`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `class`                                    | RFC 5545   | Not essential for MVP, can be added later                             |
-| `transp`                                   | RFC 5545   | Not essential for MVP, can be added later                             |
-| `duration`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `related_to`                               | RFC 5545   | Not essential for MVP, can be added later                             |
-| `resources`                                | RFC 5545   | Not essential for MVP, can be added later                             |
-| `contact`                                  | RFC 5545   | Not essential for MVP, can be added later                             |
-| `comment`                                  | RFC 5545   | Not essential for MVP, can be added later                             |
-| `request_status`                           | RFC 5545   | Not essential for MVP, can be added later                             |
-| `freebusy`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `timezone`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `method`                                   | RFC 5545   | Not essential for MVP, can be added later                             |
-| `prodid`                                   | RFC 5545   | Not essential for MVP, can be added later                             |
-| `version`                                  | RFC 5545   | Not essential for MVP, can be added later                             |
-| `calscale`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| **RFC 7986 - New Properties**              |            |                                                                       |
-| `description`                              | RFC 7986   | Replaced by `styled_description` (RFC 9073) for better formatting     |
-| `image`                                    | RFC 7986   | Replaced by `image_uri` for consistency                               |
-| `source`                                   | RFC 7986   | Not essential for MVP, can be added later                             |
-| `refresh_interval`                         | RFC 7986   | Not essential for MVP, can be added later                             |
-| `color` (calendar)                         | RFC 7986   | Included in MVP                                                       |
-| `name` (calendar)                          | RFC 7986   | Included in MVP                                                       |
-| `conference` (event)                       | RFC 7986   | Included in MVP                                                       |
-| `image_uri` (event)                        | RFC 7986   | Included in MVP                                                       |
-| **RFC 9073 - Event Publishing Extensions** |            |                                                                       |
-| `participant`                              | RFC 9073   | Not essential for MVP, can be added later                             |
-| `participant_type`                         | RFC 9073   | Not essential for MVP, can be added later                             |
-| `structured_location`                      | RFC 9073   | Included in MVP                                                       |
-| `styled_description`                       | RFC 9073   | Included in MVP                                                       |
-| **RFC 5546 - iTIP Properties**             |            |                                                                       |
-| `method`                                   | RFC 5546   | Not essential for MVP, can be added later                             |
-| `rsvp`                                     | RFC 5546   | Not essential for MVP, can be added later                             |
-| `delegated_from`                           | RFC 5546   | Not essential for MVP, can be added later                             |
-| `delegated_to`                             | RFC 5546   | Not essential for MVP, can be added later                             |
-| `member`                                   | RFC 5546   | Not essential for MVP, can be added later                             |
-| `dir`                                      | RFC 5546   | Not essential for MVP, can be added later                             |
-| `sent_by`                                  | RFC 5546   | Not essential for MVP, can be added later                             |
-| `language`                                 | RFC 5546   | Not essential for MVP, can be added later                             |
-| `cutype`                                   | RFC 5546   | Not essential for MVP, can be added later                             |
-| `partstat`                                 | RFC 5546   | Included in MVP                                                       |
-| `role`                                     | RFC 5546   | Included in MVP                                                       |
-| **RFC 5545 - Alarm Properties**            |            |                                                                       |
-| `repeat`                                   | RFC 5545   | Not essential for MVP, can be added later                             |
-| `attach`                                   | RFC 5545   | Not essential for MVP, can be added later                             |
-| `attendee`                                 | RFC 5545   | Not essential for MVP, can be added later                             |
-| `summary`                                  | RFC 5545   | Not essential for MVP, can be added later                             |
-| `x_properties`                             | RFC 5545   | Not essential for MVP, can be added later                             |
+| Field                   | RFC Source | Type              | Description                | Rationale                                            |
+| ----------------------- | ---------- | ----------------- | -------------------------- | ---------------------------------------------------- |
+| **Calendar Fields**     |            |                   |                            |                                                      |
+| `name`                  | RFC 7986   | String            | Calendar display name      | Essential for calendar identification                |
+| `color`                 | RFC 7986   | String            | CSS color value            | Important for visual calendar organization           |
+| `image_uri`             | RFC 7986   | String            | Calendar image/logo URI    | Visual branding for calendars                        |
+| `x_pubky_admins`        | Custom     | Vec<String>       | Calendar admin URIs        | Core to Pubky's decentralized admin model            |
+| `timezone`              | RFC 5545   | String            | IANA timezone ID           | Essential for proper time handling                   |
+| `created`               | RFC 5545   | i64               | Creation timestamp         | Standard metadata field                              |
+| `description`           | RFC 7986   | String            | Calendar description       | Helpful for calendar discovery                       |
+| `url`                   | RFC 7986   | String            | Calendar homepage          | Link to more information                             |
+| **Event Fields**        |            |                   |                            |                                                      |
+| `uid`                   | RFC 5545   | String            | Globally unique identifier | Required for all calendar components                 |
+| `dtstamp`               | RFC 5545   | i64               | Creation timestamp         | Required for proper iCalendar semantics              |
+| `dtstart`               | RFC 5545   | i64               | Start timestamp            | Required for all events                              |
+| `summary`               | RFC 5545   | String            | Event title                | Required - core event property                       |
+| `dtend`                 | RFC 5545   | i64               | End timestamp              | Common for timed events                              |
+| `duration`              | RFC 5545   | String            | Duration (alternative)     | Alternative to dtend                                 |
+| `description`           | RFC 5545   | String            | Event description          | Detailed information                                 |
+| `geo`                   | RFC 5545   | String            | Geographic coordinates     | Lat;lon for mapping                                  |
+| `status`                | RFC 5545   | String            | Event status               | CONFIRMED/TENTATIVE/CANCELLED                        |
+| `organizer`             | RFC 5545   | Organizer         | Event organizer            | Who organized (name from profile.json)               |
+| `categories`            | RFC 5545   | Vec<String>       | Event categories           | Categorization/filtering                             |
+| `created`               | RFC 5545   | i64               | Creation timestamp         | When event was created                               |
+| `sequence`              | RFC 5545   | i32               | Version number             | Enables future iTIP support                          |
+| `last_modified`         | RFC 5545   | i64               | Modification timestamp     | Track changes over time                              |
+| `url`                   | RFC 7986   | String            | Event homepage             | Link to event details                                |
+| `dtstart_tzid`          | RFC 5545   | String            | Start timezone             | IANA timezone for dtstart                            |
+| `dtend_tzid`            | RFC 5545   | String            | End timezone               | IANA timezone for dtend                              |
+| `rrule`                 | RFC 5545   | String            | Recurrence rule            | Recurring events                                     |
+| `rdate`                 | RFC 5545   | Vec<String>       | Recurrence dates           | Additional occurrences                               |
+| `exdate`                | RFC 5545   | Vec<String>       | Exception dates            | Skip specific occurrences                            |
+| `recurrence_id`         | RFC 5545   | i64               | Instance identifier        | Identify specific recurrence                         |
+| `image_uri`             | RFC 7986   | String            | Event image                | Visual representation                                |
+| `conference`            | RFC 7986   | Conference        | Conference details         | Video call/meeting info                              |
+| `location`              | RFC 5545   | String            | Location text              | Primary location description                         |
+| `structured_locations`  | RFC 9073   | Vec<VLocation>    | VLOCATION components       | Repeatable locations (ARRIVAL, PARKING, etc.)        |
+| `styled_description`    | RFC 9073   | StyledDescription | Formatted description      | HTML/Markdown content                                |
+| `x_pubky_calendar_uris` | Custom     | Vec<String>       | Calendar URIs              | Calendars containing this event                      |
+| `x_pubky_rsvp_access`   | Custom     | String            | RSVP access control        | "PUBLIC" (default) / "INVITE_ONLY"                   |
+| **Attendee Fields**     |            |                   |                            |                                                      |
+| `attendee_uri`          | RFC 5545   | String            | Attendee Pubky URI         | Required - who is attending (name from profile.json) |
+| `partstat`              | RFC 5545   | String            | Participation status       | Required - ACCEPTED/DECLINED/TENTATIVE/NEEDS-ACTION  |
+| `role`                  | RFC 5545   | String            | Attendee role              | REQ-PARTICIPANT/OPT-PARTICIPANT                      |
+| `rsvp`                  | RFC 5545   | bool              | RSVP requested             | true when RSVP requested                             |
+| `delegated_from`        | RFC 5545   | String            | Delegator URI              | Pubky URI (for future delegation)                    |
+| `delegated_to`          | RFC 5545   | String            | Delegate URI               | Pubky URI (for future delegation)                    |
+| `recurrence_id`         | RFC 5545   | i64               | Instance identifier        | RSVP for specific recurrence                         |
+| `x_pubky_event_uri`     | Custom     | String            | Event URI                  | Required - which event this RSVP is for              |
+| **Alarm Fields**        |            |                   |                            |                                                      |
+| `action`                | RFC 5545   | String            | Alarm action type          | Required - DISPLAY/AUDIO/EMAIL                       |
+| `trigger`               | RFC 5545   | String            | When to trigger            | Required - relative or absolute                      |
+| `description`           | RFC 5545   | String            | Alarm message              | What to display                                      |
+| `summary`               | RFC 5545   | String            | Email subject              | For EMAIL action                                     |
+| `attendees`             | RFC 5545   | Vec<String>       | Email recipients           | For EMAIL action                                     |
+| `repeat`                | RFC 5545   | i32               | Repeat count               | How many times to repeat                             |
+| `duration`              | RFC 5545   | String            | Repeat interval            | Time between repeats                                 |
+| `attach`                | RFC 5545   | String            | Attachment URI             | Sound file or other resource                         |
+| `x_pubky_target_uri`    | Custom     | String            | Target URI                 | Required - event or calendar URI                     |
 
 ---
 
@@ -396,40 +631,104 @@ let alarm = PubkyAppAlarm {
 ### Calendar Fields
 
 - `name`: **Required**. 1-255 characters.
-- `x_pubky_admins`: Must be valid Pubky URIs.
-- `color`: Must be valid CSS color (hex, rgb, named).
-- `timezone`: Must be valid IANA timezone identifier.
+- `color`: Optional. CSS color value (hex format recommended, e.g., `#F7931A`).
+- `timezone`: **Required**. Valid IANA timezone identifier (e.g.,
+  `Europe/Zurich`).
+- `description`: Optional. Plain text, up to 5000 characters.
+- `url`: Optional. Valid HTTP(S) URL.
+- `x_pubky_admins`: Optional. Array of valid Pubky URIs. Does NOT include
+  creator by default (creator is implicit from calendar URI path).
 
 ### Event Fields
 
-- `uid`: **Required**. Globally unique, recommended format:
+- `uid`: **Required**. Globally unique identifier. Recommended format:
   `<timestamp>-<user_id>-<random>@pubky`
-- `dtstart`: **Required**. Unix microseconds.
-- `dtend`: If present, must be > `dtstart`.
-- `summary`: **Required**. 1-255 characters.
-- `status`: Must be one of: `CONFIRMED`, `TENTATIVE`, `CANCELLED`.
-- `rrule`: Must be valid RFC 5545 RRULE string.
-- `organizer`: JSON string with `uri` (required) and optional `name`.
-- `conference`: JSON string with `uri` (required) and optional `label`.
-- `styled_description`: JSON string with `fmttype` (MIME type, e.g.,
-  "text/html", "text/markdown") and `value` (rich text content).
+- `dtstamp`: **Required**. Unix microseconds. Timestamp when event was
+  created/modified.
+- `dtstart`: **Required**. Unix microseconds. Event start time.
+- `summary`: **Required**. 1-255 characters. Event title.
+- `dtend`: Optional. If present, must be > `dtstart`. Mutually exclusive with
+  `duration`.
+- `duration`: Optional. RFC 5545 duration format (e.g., `PT1H30M`). Mutually
+  exclusive with `dtend`.
+- `description`: Optional. Plain text description.
+- `geo`: Optional. Geographic coordinates in "latitude;longitude" format (RFC
+  5545 GEO property). Example: "47.366667;8.550000"
+- `dtstart_tzid`: Optional. IANA timezone ID for dtstart (e.g.,
+  "Europe/Zurich").
+- `dtend_tzid`: Optional. IANA timezone ID for dtend.
+- `sequence`: Optional. Default 0. Increment on each modification for future
+  iTIP compatibility.
+- `last_modified`: Optional. Should update whenever event changes.
+- `status`: Optional. Must be one of: `CONFIRMED`, `TENTATIVE`, `CANCELLED`.
+- `rrule`: Optional. Must be valid RFC 5545 RRULE string.
+- `organizer`: Optional. Structured type with required `uri` field. Name fetched
+  from profile.json.
+- `conference`: Optional. Structured type with required `uri` field.
+- `location`: Optional. Primary location text description (RFC 5545 LOCATION
+  property).
+- `geo`: Optional. Geographic coordinates in "latitude;longitude" format (RFC
+  5545 GEO property). Example: "47.366667;8.550000"
+- `structured_locations`: Optional. Array of VLocation objects (RFC 9073
+  VLOCATION components). Each object has:
+  - `name`: REQUIRED - Location name (e.g., "Insider Bar")
+  - `location_type`: Optional - ARRIVAL, DEPARTURE, PARKING, VIRTUAL, etc.
+  - `address`: Optional - Street address (e.g., "Münstergasse 20, 8001 Zürich")
+  - `uri`: Optional - geo: URI or OSM link
+  - `description`: Optional - Additional details (e.g., "Second floor")
+
+**Location Field Usage:**
+
+Pubky uses a **three-tier location approach**:
+
+1. **`location`** (optional): Simple text description - most calendar clients
+   display this
+2. **`geo`** (optional): Coordinates for mapping - simple "lat;lon" format
+3. **`structured_locations`** (optional): Repeatable RFC 9073 VLOCATION
+   components for complex events with multiple locations (parking, arrival,
+   virtual, etc.)
+
+**For CalDAV/iCal export:**
+
+- Map `location` → LOCATION property
+- Map `geo` → GEO property
+- Map `structured_locations[]` → VLOCATION components with UID, NAME,
+  LOCATION-TYPE, etc.
+
+**For CalDAV/iCal import:**
+
+- Map LOCATION → `location`
+- Map GEO → `geo`
+- Map VLOCATION components → `structured_locations[]` array
 
 ### Attendee Fields
 
-- `attendee_uri`: **Required**. Valid Pubky URI.
-- `partstat`: **Required**. Must be one of: `NEEDS-ACTION`, `ACCEPTED`,
-  `DECLINED`, `TENTATIVE`, `DELEGATED`.
-- `role`: Must be one of: `CHAIR`, `REQ-PARTICIPANT`, `OPT-PARTICIPANT`,
+- `attendee_uri`: **Required**. Valid Pubky URI. Name fetched from profile.json.
+- `partstat`: **Required**. Must be one of: `ACCEPTED`, `DECLINED`, `TENTATIVE`,
+  `NEEDS-ACTION`. Default: `NEEDS-ACTION`.
+- `x_pubky_event_uri`: **Required**. Valid Pubky URI pointing to an event.
+- `role`: Optional. Must be one of: `REQ-PARTICIPANT`, `OPT-PARTICIPANT`,
   `NON-PARTICIPANT`.
-- `recurrence_id`: **Optional**. For recurring events, specifies which instance
-  this RSVP applies to. If omitted, the RSVP applies to all instances of the
-  recurring event.
+- `rsvp`: Optional. Boolean indicating if RSVP is requested.
+- `delegated_from`: Optional. Valid Pubky URI (for future delegation support).
+- `delegated_to`: Optional. Valid Pubky URI (for future delegation support).
+- `recurrence_id`: Optional. For recurring events, specifies which instance this
+  RSVP applies to. If omitted, the RSVP applies to all instances.
 
 ### Alarm Fields
 
 - `action`: **Required**. Must be one of: `AUDIO`, `DISPLAY`, `EMAIL`.
-- `trigger`: **Required**. Valid duration or absolute timestamp.
-- `uid`: **Required**. Globally unique identifier.
+- `trigger`: **Required**. RFC 5545 duration (e.g., `-PT15M` for 15 minutes
+  before) or absolute timestamp.
+- `x_pubky_target_uri`: **Required**. Valid Pubky URI pointing to an event or
+  calendar.
+- `description`: Optional but recommended. Alarm message text.
+- `summary`: Optional. Email subject (required for EMAIL action).
+- `attendees`: Optional. Array of email addresses (required for EMAIL action).
+- `repeat`: Optional. Must be non-negative integer.
+- `duration`: Optional. RFC 5545 duration format. Required if `repeat` is
+  present.
+- `attach`: Optional. URI for sound file or other attachment.
 
 ---
 
@@ -437,247 +736,93 @@ let alarm = PubkyAppAlarm {
 
 ```
 /pub/pubky.app/
-├── calendar/:calendar_id           # Calendar metadata
-├── event/:event_id                 # Individual events
-├── attendee/:attendee_id           # RSVP records
-└── alarm/:alarm_id                 # User reminders
+├── calendar/:calendar_id     # Calendar metadata
+├── event/:event_id           # Individual events
+├── attendee/:attendee_id     # RSVP records
+└── alarm/:alarm_id           # User reminders
 ```
 
-**Example URIs:**
+### ID Generation
 
-- Calendar: `pubky://<user_id>/pub/pubky.app/calendar/<calendar_id>`
-- Event: `pubky://<user_id>/pub/pubky.app/event/<event_id>`
-- Attendee: `pubky://<user_id>/pub/pubky.app/attendee/<attendee_id>`
-- Alarm: `pubky://<user_id>/pub/pubky.app/alarm/<alarm_id>`
+- **Calendar ID**: Base32-encoded timestamp + random suffix (e.g.,
+  `0033RCZXVEPNG`)
+- **Event ID**: Base32-encoded timestamp + random suffix (e.g., `0033SCZXVEPNG`)
+- **Attendee ID**: Hash of `attendee_uri` + `event_uri` + optional
+  `recurrence_id`
+- **Alarm ID**: Base32-encoded timestamp + random suffix
 
----
+### Storage Examples
 
-## Recurrence Overrides and Exceptions
-
-Individual instances of recurring events can be modified or excluded using
-standard iCalendar mechanisms (RFC 5545). This section details how recurrence
-overrides work with explicit typed fields.
-
-### Excluding Instances (EXDATE)
-
-The `exdate` field contains an array of timestamps for instances to exclude from
-the recurrence pattern:
-
-```rust
-// Example: Exclude October 16th and 23rd from weekly meetup
-let event = PubkyAppEvent {
-    // ... other fields ...
-    rrule: Some("FREQ=WEEKLY;BYDAY=WE".to_string()),
-    exdate: Some(vec![
-        "2025-10-16T19:00:00+02:00".to_string(),  // October 16th
-        "2025-10-23T19:00:00+02:00".to_string(),  // October 23rd
-    ]),
-    // ... other fields ...
-};
 ```
-
-### Adding Extra Instances (RDATE)
-
-The `rdate` field contains an array of timestamps for additional instances not
-covered by the RRULE:
-
-```rust
-// Example: Add extra meetup on October 15th
-let event = PubkyAppEvent {
-    // ... other fields ...
-    rrule: Some("FREQ=WEEKLY;BYDAY=WE".to_string()),
-    rdate: Some(vec![
-        "2025-10-15T19:00:00+02:00".to_string(),  // Extra Tuesday meetup
-    ]),
-    // ... other fields ...
-};
+pubky://alice/pub/pubky.app/calendar/cal-001
+pubky://alice/pub/pubky.app/event/evt-001
+pubky://bob/pub/pubky.app/attendee/att-alice-evt-001
+pubky://bob/pub/pubky.app/alarm/alm-001
 ```
-
-### Modifying Individual Instances (RECURRENCE-ID)
-
-Create a separate `PubkyAppEvent` with modified properties for a specific
-occurrence. The `recurrence_id` field identifies which instance is being
-overridden.
-
-**Master Recurring Event:**
-
-```rust
-let master_event = PubkyAppEvent {
-    id: "0033SCZXVEPNG".to_string(),
-    uid: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
-    dtstart: 1698753600000000,  // October 9th, 19:00
-    dtend: 1698764400000000,    // October 9th, 22:00
-    summary: "Bitcoin Meetup Zürich".to_string(),
-    rrule: Some("FREQ=WEEKLY;BYDAY=WE".to_string()),
-    recurrence_id: None,  // Master event has no recurrence_id
-    // ... other fields ...
-};
-```
-
-**Override for October 16th instance (separate file):**
-
-```rust
-let override_event = PubkyAppEvent {
-    id: "0033TCZXVEPNG".to_string(),
-    uid: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(), // Same UID as master
-    dtstart: 1699358400000000,  // October 16th, 20:00 (moved from 19:00)
-    dtend: 1699372800000000,    // October 16th, 23:00 (extended)
-    summary: "Bitcoin Meetup Zürich - Special Lightning Workshop".to_string(),
-    recurrence_id: Some(1699358400000000), // Original occurrence time (19:00)
-    rrule: None,  // Override events don't have RRULE
-    // ... other fields ...
-};
-```
-
-### Key Implementation Rules
-
-1. **Shared UID**: Override events must share the same `uid` as the master
-   recurring event
-2. **Recurrence ID Timing**: The `recurrence_id` value must match the **original
-   occurrence time** (October 16th at 19:00), even if the start time is moved to
-   20:00
-3. **Separate Storage**: Override events are stored as separate files on the
-   homeserver
-4. **Property Modification**: Any property can be modified in the override
-   (time, location, summary, attendees, etc.)
-5. **Nexus Aggregation**: Nexus aggregates both the master event and override
-   instances when querying the calendar
-6. **No RRULE in Overrides**: Override events should not have an `rrule` field
-
-### Frontend Implementation Guidelines
-
-**Calendar View Rendering:**
-
-- Render master event instances according to RRULE
-- Apply EXDATE exclusions
-- Add RDATE extra instances
-- Replace instances with matching RECURRENCE-ID overrides
-
-**Event Creation/Editing:**
-
-- When editing a recurring event, prompt user: "Edit this occurrence only" vs
-  "Edit all occurrences"
-- For single occurrence edits, create override event with proper `recurrence_id`
-- For all occurrence edits, update master event and remove related overrides
-
-**Data Consistency:**
-
-- Validate that `recurrence_id` timestamps match actual occurrence times
-- Ensure override events don't have conflicting RRULE patterns
-- Handle timezone conversions properly for recurrence calculations
 
 ---
 
 ## Graph Relationships
 
-### Neo4j Relationships
+### Event → Calendar
 
-**OWNS** (User → Calendar/Event/Attendee/Alarm):
+Events can reference one or more parent calendars via `x_pubky_calendar_uris`.
+This is optional - events can exist independently.
 
-```cypher
-(:User {id: "user_id"})-[:OWNS]->(:Calendar {id: "calendar_id"})
-(:User {id: "user_id"})-[:OWNS]->(:Event {id: "event_id"})
-(:User {id: "user_id"})-[:OWNS]->(:Attendee {id: "attendee_id"})
-(:User {id: "user_id"})-[:OWNS]->(:Alarm {id: "alarm_id"})
+```rust
+event.x_pubky_calendar_uris = Some(vec!["pubky://alice/pub/pubky.app/calendar/cal-001".to_string()])
 ```
 
-**ADMIN_OF** (User → Calendar):
+### Attendee → Event
 
-```cypher
-(:User {id: "admin_id"})-[:ADMIN_OF]->(:Calendar {id: "calendar_id"})
+Attendees reference the event they're RSVPing to via `x_pubky_event_uri`. This
+is required.
+
+```rust
+attendee.x_pubky_event_uri = "pubky://alice/pub/pubky.app/event/evt-001".to_string()
 ```
 
-**ATTENDING** (User → Event via Attendee):
+### Alarm → Event/Calendar
 
-```cypher
-(:User {id: "attendee_id"})-[:ATTENDING {partstat: "ACCEPTED"}]->(:Event {id: "event_id"})
+Alarms reference their target (event or calendar) via `x_pubky_target_uri`.
+
+```rust
+alarm.x_pubky_target_uri = "pubky://alice/pub/pubky.app/event/evt-001".to_string()
 ```
 
-**BELONGS_TO** (Event → Calendar):
+### Nexus Indexing
 
-```cypher
-(:Event {id: "event_id"})-[:BELONGS_TO]->(:Calendar {id: "calendar_id"})
-```
+Nexus indexes these relationships to provide:
 
-**RSVP_FOR** (Attendee → Event):
-
-```cypher
-(:Attendee {id: "attendee_id"})-[:RSVP_FOR]->(:Event {id: "event_id"})
-```
-
-**ALARM_FOR** (Alarm → Event/Calendar):
-
-```cypher
-(:Alarm {id: "alarm_id"})-[:ALARM_FOR]->(:Event {id: "event_id"})
-(:Alarm {id: "alarm_id"})-[:ALARM_FOR]->(:Calendar {id: "calendar_id"})
-```
+- Events by calendar
+- Attendees by event
+- Alarms by event/calendar
+- Events by category, time range, location
 
 ---
 
 ## Future Extensions and Considerations
 
-### Potential Advanced Features
+### Extension to V3 (iTIP Scheduling)
 
-**Enhanced Access Control** (using RFC 4791 patterns):
+V2 is designed to be **extendible without breaking changes** to allow iTIP
+scheduling:
 
-- Calendar-level RSVP policies (`x-pubky-rsvp-policy`: open, approval-required,
-  invite-only)
-- Event submission workflows with approval queues
-- Granular permissions (read, write, admin roles)
-- Auto-approval lists for trusted contributors
+**Fields already present that enable iTIP:**
 
-**Rich Event Features** (RFC 9073):
+- `sequence` - Version tracking for event updates
+- `last_modified` - Change detection
+- `organizer` - Structured organizer information
+- `uid` - Global event identification
 
-- `PARTICIPANT` components for conference speakers, sponsors, performers
-- Enhanced location data with OpenStreetMap integration. With location based
-  event lookups in Nexus.
-- Additional styled description formats
+### Additional Future Considerations
 
-**Advanced Scheduling** (RFC 5546, RFC 6638):
-
-- iTIP message flows for formal invitations
-- Free/busy time aggregation
-- Delegation and proxy workflows
-- Server-side scheduling automation
-
-**Extended Alarm Capabilities** (RFC 9074):
-
-- `PROXIMITY` triggers (location-based reminders)
-- Complex alarm relationships with `RELATED-TO`
-- Snooze and acknowledgment tracking
-
-### Implementation Notes
-
-The current specification establishes the foundation for these features without
-requiring their immediate implementation. The explicit field structure makes it
-clear which fields are available while allowing for future extensions.
-
-For the MVP implementation, focus is set on the core schemas (Calendar, Event,
-Attendee) with essential fields. Advanced features can be layered on as the
-ecosystem matures and user needs become clearer.
-
----
-
-## References
-
-### Core RFC Standards
-
-- [RFC 5545 - Internet Calendaring and Scheduling Core Object Specification (iCalendar)](https://www.rfc-editor.org/rfc/rfc5545.html)
-- [RFC 7265 - jCal: The JSON Format for iCalendar](https://www.rfc-editor.org/rfc/rfc7265.html)
-- [RFC 4791 - Calendaring Extensions to WebDAV (CalDAV)](https://www.rfc-editor.org/rfc/rfc4791.html)
-- [RFC 5546 - iCalendar Transport-Independent Interoperability Protocol (iTIP)](https://www.rfc-editor.org/rfc/rfc5546.html)
-- [RFC 7986 - New Properties for iCalendar](https://www.rfc-editor.org/rfc/rfc7986.html)
-- [RFC 9073 - Event Publishing Extensions to iCalendar](https://www.rfc-editor.org/rfc/rfc9073.html)
-
-### Supporting Standards
-
-- [RFC 6868 - Parameter Value Encoding in iCalendar and vCard](https://www.rfc-editor.org/rfc/rfc6868.html)
-- [RFC 6638 - Scheduling Extensions to CalDAV](https://www.rfc-editor.org/rfc/rfc6638.html)
-- [RFC 7529 - Non-Gregorian Recurrence Rules in iCalendar](https://www.rfc-editor.org/rfc/rfc7529.html)
-- [RFC 9074 - VALARM Extensions for iCalendar](https://www.rfc-editor.org/rfc/rfc9074.html)
-
-### Pubky Resources
-
-- [Pubky Core Documentation](https://docs.pubky.org/)
-- [Pubky-App Specs Repository](https://github.com/pubky/pubky-app-specs)
-- [Pubky-Nexus Repository](https://github.com/pubky/pubky-nexus)
+- **Attachments**: Add `attachments` field for files/documents
+- **Custom properties**: Support for `X-` prefixed custom fields beyond existing
+  x_pubky_ extensions
+- **Localization**: Support for multiple language variants of
+  summary/description
+- **Accessibility**: Add fields for accessibility information
+- **Capacity limits**: Add `max_attendees` for events with limited capacity
+- **Advanced RSVP**: Expand `x_pubky_rsvp_access` to support "CONFIRMED_ONLY",
+  "FOLLOWERS_ONLY", etc.

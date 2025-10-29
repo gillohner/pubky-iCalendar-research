@@ -16,10 +16,10 @@ explicit typed fields.
     "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
     "author": "pubky://satoshi",
     "name": "Bitcoin Switzerland Events",
+    "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01",
     "color": "#F7931A",
     "timezone": "Europe/Zurich",
-    "admins": [
-        "pubky://satoshi",
+    "x_pubky_admins": [
         "pubky://adam-back",
         "pubky://decentralschweiz"
     ],
@@ -35,10 +35,10 @@ explicit typed fields.
     "uri": "pubky://hal/pub/pubky.app/calendar/0033RDZXVEPNG",
     "author": "pubky://hal",
     "name": "Lightning Network Meetups",
+    "image_uri": "pubky://hal/pub/pubky.app/files/0033CALIMG02",
     "color": "#FFD700",
     "timezone": "Europe/Zurich",
-    "admins": [
-        "pubky://hal",
+    "x_pubky_admins": [
         "pubky://lightning-dev"
     ],
     "created": 1698753600000000
@@ -57,7 +57,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -66,8 +67,7 @@ explicit typed fields.
     "summary": "Bitcoin Meetup Zürich",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup", "networking"],
     "created": 1698753600000000,
@@ -80,16 +80,27 @@ explicit typed fields.
         "uri": "https://meet.jit.si/bitcoin-zurich",
         "label": "Jitsi Meeting"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Insider Bar",
-        "description": "Main venue in Zürich city center"
+    "location": "Insider Bar, Zürich",
+    "geo": {
+        "lat": 47.366667,
+        "lon": 8.550000
     },
+    "structured_locations": [
+        {
+            "name": "Insider Bar",
+            "location_type": "ARRIVAL",
+            "address": "Münstergasse 20, 8001 Zürich",
+            "uri": "https://www.openstreetmap.org/node/123456789",
+            "description": "Main venue in Zürich city center"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong> developments and Bitcoin adoption in Switzerland.</p><p>Topics include:</p><ul><li>Lightning Network updates</li><li>Bitcoin adoption stories</li><li>Technical discussions</li></ul>"
     },
-    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -103,7 +114,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RDZXVEPNG",
         "uri": "pubky://hal/pub/pubky.app/calendar/0033RDZXVEPNG",
-        "name": "Lightning Network Meetups"
+        "name": "Lightning Network Meetups",
+        "image_uri": "pubky://hal/pub/pubky.app/files/0033CALIMG02"
     },
     "uid": "pubky://hal/pub/pubky.app/event/0033SDZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -112,8 +124,7 @@ explicit typed fields.
     "summary": "Lightning Network Workshop",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://hal",
-        "name": "Hal Finney"
+        "uri": "pubky://hal"
     },
     "categories": ["lightning", "workshop", "education"],
     "created": 1698753600000000,
@@ -126,16 +137,27 @@ explicit typed fields.
         "uri": "https://meet.jit.si/lightning-workshop",
         "label": "Lightning Workshop Room"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Tech Hub Zürich",
-        "description": "Workshop room with presentation equipment"
+    "location": "Tech Hub Zürich",
+    "geo": {
+        "lat": 47.370000,
+        "lon": 8.545000
     },
+    "structured_locations": [
+        {
+            "name": "Tech Hub Zürich",
+            "location_type": "ARRIVAL",
+            "address": "Technoparkstrasse 1, 8005 Zürich",
+            "uri": "https://www.openstreetmap.org/node/987654321",
+            "description": "Workshop room with presentation equipment"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Hands-on Lightning Network workshop covering:</p><ul><li>Setting up a Lightning node</li><li>Creating payment channels</li><li>Routing payments</li><li>Best practices for security</li></ul><p><strong>Prerequisites:</strong> Basic understanding of Bitcoin and command line usage.</p>"
     },
-    "x_pubky_calendar_uri": "pubky://hal/pub/pubky.app/calendar/0033RDZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://hal/pub/pubky.app/calendar/0033RDZXVEPNG"
+    ]
 }
 ```
 
@@ -149,7 +171,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://adam-back/pub/pubky.app/event/0033SEZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -158,8 +181,7 @@ explicit typed fields.
     "summary": "Bitcoin Conference 2024",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://adam-back",
-        "name": "Adam Back"
+        "uri": "pubky://adam-back"
     },
     "categories": ["bitcoin", "conference", "speakers"],
     "created": 1698753600000000,
@@ -172,16 +194,34 @@ explicit typed fields.
         "uri": "https://bitcoin-conference-2024.ch",
         "label": "Conference Website"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Kongresshaus Zürich",
-        "description": "Main conference venue in Zürich"
+    "location": "Kongresshaus Zürich",
+    "geo": {
+        "lat": 47.366667,
+        "lon": 8.543333
     },
+    "structured_locations": [
+        {
+            "name": "Kongresshaus Zürich",
+            "location_type": "ARRIVAL",
+            "address": "Claridenstrasse 5, 8002 Zürich",
+            "uri": "https://www.openstreetmap.org/node/456789123",
+            "description": "Main conference venue"
+        },
+        {
+            "name": "Parkhaus Opéra",
+            "location_type": "PARKING",
+            "address": "Claridenstrasse 22, 8002 Zürich",
+            "uri": "geo:47.366000,8.543000",
+            "description": null
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>The premier Bitcoin conference in Switzerland featuring:</p><ul><li>Keynote speakers from the Bitcoin community</li><li>Technical presentations on Bitcoin development</li><li>Panel discussions on Bitcoin adoption</li><li>Networking opportunities</li></ul><p><strong>Speakers include:</strong> Satoshi Nakamoto, Hal Finney, Adam Back, and more.</p>"
     },
-    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -200,7 +240,6 @@ explicit typed fields.
         "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://alice",
-    "attendee_name": "Alice",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": null,
@@ -221,7 +260,6 @@ explicit typed fields.
         "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://bob",
-    "attendee_name": "Bob",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": 1699358400000000,
@@ -244,7 +282,6 @@ explicit typed fields.
         "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://charlie",
-    "attendee_name": "Charlie",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": 1698753600000000,
@@ -265,7 +302,6 @@ explicit typed fields.
         "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://charlie",
-    "attendee_name": "Charlie",
     "partstat": "DECLINED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": 1699358400000000,
@@ -349,7 +385,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -358,8 +395,7 @@ explicit typed fields.
     "summary": "Bitcoin Meetup Zürich",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup"],
     "created": 1698753600000000,
@@ -374,16 +410,27 @@ explicit typed fields.
     "recurrence_id": null,
     "image_uri": "pubky://satoshi/pub/pubky.app/files/0033EVENT01",
     "conference": null,
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Insider Bar",
-        "description": "Main venue"
+    "location": "Insider Bar",
+    "geo": {
+        "lat": 47.366667,
+        "lon": 8.550000
     },
+    "structured_locations": [
+        {
+            "name": "Insider Bar",
+            "location_type": "ARRIVAL",
+            "address": "Münstergasse 20, 8001 Zürich",
+            "uri": "geo:47.366667,8.550000",
+            "description": "Main venue"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
     },
-    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -399,7 +446,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -408,8 +456,7 @@ explicit typed fields.
     "summary": "Bitcoin Meetup Zürich",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup"],
     "created": 1698753600000000,
@@ -419,16 +466,27 @@ explicit typed fields.
     "recurrence_id": null,
     "image_uri": "pubky://satoshi/pub/pubky.app/files/0033EVENT01",
     "conference": null,
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Insider Bar",
-        "description": "Main venue"
+    "location": "Insider Bar",
+    "geo": {
+        "lat": 47.366667,
+        "lon": 8.550000
     },
+    "structured_locations": [
+        {
+            "name": "Insider Bar",
+            "location_type": "ARRIVAL",
+            "address": "Münstergasse 20, 8001 Zürich",
+            "uri": "geo:47.366667,8.550000",
+            "description": "Main venue"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
     },
-    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -442,7 +500,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -451,8 +510,7 @@ explicit typed fields.
     "summary": "Bitcoin Meetup Zürich - Special Lightning Workshop",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup", "workshop"],
     "created": 1698753600000000,
@@ -465,16 +523,27 @@ explicit typed fields.
         "uri": "https://meet.jit.si/bitcoin-zurich-workshop",
         "label": "Lightning Workshop Room"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Tech Hub Zürich",
-        "description": "Workshop venue for special event"
+    "location": "Tech Hub Zürich",
+    "geo": {
+        "lat": 47.370000,
+        "lon": 8.545000
     },
+    "structured_locations": [
+        {
+            "name": "Tech Hub Zürich",
+            "location_type": "ARRIVAL",
+            "address": "Technoparkstrasse 1, 8005 Zürich",
+            "uri": "geo:47.370000,8.545000",
+            "description": "Workshop venue for special event"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Special Lightning Network workshop session. This week we'll have hands-on Lightning node setup and payment channel creation.</p>"
     },
-    "x_pubky_calendar_uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -490,7 +559,8 @@ explicit typed fields.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://adam-back/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Conference Series"
+        "name": "Bitcoin Conference Series",
+        "image_uri": "pubky://adam-back/pub/pubky.app/files/0033CALIMG03"
     },
     "uid": "pubky://adam-back/pub/pubky.app/event/0033MCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -499,8 +569,7 @@ explicit typed fields.
     "summary": "Bitcoin Conference Monthly",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://adam-back",
-        "name": "Adam Back"
+        "uri": "pubky://adam-back"
     },
     "categories": ["bitcoin", "conference"],
     "created": 1698753600000000,
@@ -519,16 +588,27 @@ explicit typed fields.
         "uri": "https://bitcoin-conference-2024.ch",
         "label": "Conference Website"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Convention Center Zürich",
-        "description": "Main conference venue"
+    "location": "Convention Center Zürich",
+    "geo": {
+        "lat": 47.410000,
+        "lon": 8.540000
     },
+    "structured_locations": [
+        {
+            "name": "Convention Center Zürich",
+            "location_type": "ARRIVAL",
+            "address": "Walchestrasse 9, 8006 Zürich",
+            "uri": "geo:47.410000,8.540000",
+            "description": "Main conference venue"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Monthly Bitcoin conference with <strong>industry leaders</strong> and <em>technical workshops</em></p>"
     },
-    "x_pubky_calendar_uri": "pubky://adam-back/pub/pubky.app/calendar/0033RCZXVEPNG"
+    "x_pubky_calendar_uris": [
+        "pubky://adam-back/pub/pubky.app/calendar/0033RCZXVEPNG"
+    ]
 }
 ```
 
@@ -541,12 +621,13 @@ All timestamps are Unix microseconds (i64) for consistency with Pubky's
 
 ### JSON Objects
 
-Structured data like `organizer`, `conference`, and `structured_location` are
+Structured data like `organizer`, `conference`, and `structured_locations` are
 stored as JSON objects with standardized keys.
 
 ### Multi-value Fields
 
-Fields like `categories` and `admins` are stored as arrays of strings.
+Fields like `categories`, `x_pubky_admins`, `x_pubky_calendar_uris`, and
+`structured_locations` are stored as arrays.
 
 ### URIs
 
@@ -568,7 +649,6 @@ User commits to attending all occurrences of the recurring event by omitting the
 ```json
 {
     "attendee_uri": "pubky://alice",
-    "attendee_name": "Alice",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": null,
@@ -584,7 +664,6 @@ instance's timestamp:
 ```json
 {
     "attendee_uri": "pubky://bob",
-    "attendee_name": "Bob",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT",
     "recurrence_id": 1699358400000000,

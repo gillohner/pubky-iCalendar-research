@@ -40,9 +40,10 @@ Retrieve a list of calendars with optional filtering.
             "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
             "author": "pubky://satoshi",
             "name": "Bitcoin Switzerland Events",
+            "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01",
             "color": "#F7931A",
             "timezone": "Europe/Zurich",
-            "admins": [
+            "x_pubky_admins": [
                 "pubky://satoshi",
                 "pubky://adam-back"
             ],
@@ -72,9 +73,10 @@ Retrieve a specific calendar by ID with its events.
     "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
     "author": "pubky://satoshi",
     "name": "Bitcoin Switzerland Events",
+    "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01",
     "color": "#F7931A",
     "timezone": "Europe/Zurich",
-    "admins": [
+    "x_pubky_admins": [
         "pubky://satoshi",
         "pubky://adam-back"
     ],
@@ -90,8 +92,7 @@ Retrieve a specific calendar by ID with its events.
             "summary": "Bitcoin Meetup Zürich",
             "status": "CONFIRMED",
             "organizer": {
-                "uri": "pubky://satoshi",
-                "name": "Satoshi"
+                "uri": "pubky://satoshi"
             },
             "categories": ["bitcoin", "meetup"],
             "created": 1698753600000000,
@@ -104,11 +105,17 @@ Retrieve a specific calendar by ID with its events.
                 "uri": "https://meet.jit.si/bitcoin-zurich",
                 "label": "Jitsi Meeting"
             },
-            "structured_location": {
-                "uri": "geo:47.366667,8.550000",
-                "name": "Insider Bar",
-                "description": "Main venue"
-            },
+            "location": "Insider Bar",
+            "geo": "47.366667;8.550000",
+            "structured_locations": [
+                {
+                    "name": "Insider Bar",
+                    "location_type": "ARRIVAL",
+                    "address": "Münstergasse 20, 8001 Zürich",
+                    "uri": "geo:47.366667,8.550000",
+                    "description": "Main venue"
+                }
+            ],
             "styled_description": {
                 "fmttype": "text/html",
                 "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
@@ -152,7 +159,8 @@ Retrieve a list of events with optional filtering.
             "calendar": {
                 "id": "0033RCZXVEPNG",
                 "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-                "name": "Bitcoin Switzerland Events"
+                "name": "Bitcoin Switzerland Events",
+                "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
             },
             "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
             "dtstamp": 1698753600000000,
@@ -161,8 +169,7 @@ Retrieve a list of events with optional filtering.
             "summary": "Bitcoin Meetup Zürich",
             "status": "CONFIRMED",
             "organizer": {
-                "uri": "pubky://satoshi",
-                "name": "Satoshi"
+                "uri": "pubky://satoshi"
             },
             "categories": ["bitcoin", "meetup"],
             "created": 1698753600000000,
@@ -175,11 +182,17 @@ Retrieve a list of events with optional filtering.
                 "uri": "https://meet.jit.si/bitcoin-zurich",
                 "label": "Jitsi Meeting"
             },
-            "structured_location": {
-                "uri": "geo:47.366667,8.550000",
-                "name": "Insider Bar",
-                "description": "Main venue"
-            },
+            "location": "Insider Bar",
+            "geo": "47.366667;8.550000",
+            "structured_locations": [
+                {
+                    "name": "Insider Bar",
+                    "location_type": "ARRIVAL",
+                    "address": "Münstergasse 20, 8001 Zürich",
+                    "uri": "geo:47.366667,8.550000",
+                    "description": "Main venue"
+                }
+            ],
             "styled_description": {
                 "fmttype": "text/html",
                 "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
@@ -213,7 +226,8 @@ Retrieve a specific event by ID with attendees and alarms.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -222,8 +236,7 @@ Retrieve a specific event by ID with attendees and alarms.
     "summary": "Bitcoin Meetup Zürich",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup"],
     "created": 1698753600000000,
@@ -236,11 +249,17 @@ Retrieve a specific event by ID with attendees and alarms.
         "uri": "https://meet.jit.si/bitcoin-zurich",
         "label": "Jitsi Meeting"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Insider Bar",
-        "description": "Main venue"
-    },
+    "location": "Insider Bar",
+    "geo": "47.366667;8.550000",
+    "structured_locations": [
+        {
+            "name": "Insider Bar",
+            "location_type": "ARRIVAL",
+            "address": "Münstergasse 20, 8001 Zürich",
+            "uri": "geo:47.366667,8.550000",
+            "description": "Main venue"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
@@ -251,7 +270,6 @@ Retrieve a specific event by ID with attendees and alarms.
             "uri": "pubky://alice/pub/pubky.app/attendee/0033UCZXVEPNG",
             "author": "pubky://alice",
             "attendee_uri": "pubky://alice",
-            "attendee_name": "Alice",
             "partstat": "ACCEPTED",
             "role": "REQ-PARTICIPANT",
             "recurrence_id": null
@@ -261,7 +279,6 @@ Retrieve a specific event by ID with attendees and alarms.
             "uri": "pubky://bob/pub/pubky.app/attendee/0033UDZXVEPNG",
             "author": "pubky://bob",
             "attendee_uri": "pubky://bob",
-            "attendee_name": "Bob",
             "partstat": "ACCEPTED",
             "role": "REQ-PARTICIPANT",
             "recurrence_id": 1699358400000000
@@ -314,7 +331,6 @@ Retrieve a specific attendee by ID.
         "summary": "Bitcoin Meetup Zürich"
     },
     "attendee_uri": "pubky://alice",
-    "attendee_name": "Alice",
     "partstat": "ACCEPTED",
     "role": "REQ-PARTICIPANT"
 }
@@ -447,7 +463,8 @@ Creates an event that repeats daily for exactly 10 occurrences.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -456,8 +473,7 @@ Creates an event that repeats daily for exactly 10 occurrences.
     "summary": "Bitcoin Meetup Zürich",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup"],
     "created": 1698753600000000,
@@ -467,18 +483,27 @@ Creates an event that repeats daily for exactly 10 occurrences.
         "2025-10-16T19:00:00+02:00",
         "2025-10-23T19:00:00+02:00"
     ],
-    "recurrence_id": null,
+        "recurrence_id": null,
     "image_uri": "pubky://satoshi/pub/pubky.app/files/0033EVENT01",
     "conference": null,
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Insider Bar",
-        "description": "Main venue"
-    },
+    "location": "Insider Bar",
+    "geo": "47.366667;8.550000",
+    "structured_locations": [
+        {
+            "name": "Insider Bar",
+            "location_type": "ARRIVAL",
+            "address": "Münstergasse 20, 8001 Zürich",
+            "uri": "geo:47.366667,8.550000",
+            "description": "Main venue"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>"
     }
+}
+
+**Override Event Response:**
 }
 ```
 
@@ -492,7 +517,8 @@ Creates an event that repeats daily for exactly 10 occurrences.
     "calendar": {
         "id": "0033RCZXVEPNG",
         "uri": "pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG",
-        "name": "Bitcoin Switzerland Events"
+        "name": "Bitcoin Switzerland Events",
+        "image_uri": "pubky://satoshi/pub/pubky.app/files/0033CALIMG01"
     },
     "uid": "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG",
     "dtstamp": 1698753600000000,
@@ -501,8 +527,7 @@ Creates an event that repeats daily for exactly 10 occurrences.
     "summary": "Bitcoin Meetup Zürich - Special Lightning Workshop",
     "status": "CONFIRMED",
     "organizer": {
-        "uri": "pubky://satoshi",
-        "name": "Satoshi"
+        "uri": "pubky://satoshi"
     },
     "categories": ["bitcoin", "meetup", "workshop"],
     "created": 1698753600000000,
@@ -515,11 +540,17 @@ Creates an event that repeats daily for exactly 10 occurrences.
         "uri": "https://meet.jit.si/bitcoin-zurich-workshop",
         "label": "Lightning Workshop Room"
     },
-    "structured_location": {
-        "uri": "geo:47.366667,8.550000",
-        "name": "Tech Hub Zürich",
-        "description": "Workshop venue for special event"
-    },
+    "location": "Tech Hub Zürich",
+    "geo": "47.370000;8.545000",
+    "structured_locations": [
+        {
+            "name": "Tech Hub Zürich",
+            "location_type": "ARRIVAL",
+            "address": "Technoparkstrasse 1, 8005 Zürich",
+            "uri": "geo:47.370000,8.545000",
+            "description": "Workshop venue for special event"
+        }
+    ],
     "styled_description": {
         "fmttype": "text/html",
         "value": "<p>Special Lightning Network workshop session. This week we'll have hands-on Lightning node setup and payment channel creation.</p>"

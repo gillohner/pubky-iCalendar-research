@@ -83,3 +83,9 @@ architecture and frontend scope:
 | **[prototype-implementation-scope.md](prototype-implementation-scope.md)** | Frontend implementation scope and roadmap      |
 | **[context-references.md](context-references.md)**                         | RFC calendar standards and external references |
 | **[notes.md](notes.md)**                                                   | Development notes and considerations           |
+
+## Development Github Repositories
+
+https://github.com/gillohner/pubky-app-specs/tree/feat/calendar-events
+https://github.com/gillohner/pubky-nexus/tree/feat/calendar-events
+https://github.com/gillohner/pubky-ical-poc

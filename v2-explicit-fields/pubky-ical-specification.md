@@ -50,7 +50,7 @@ pub struct Conference {
 
 // RFC 9073 VLOCATION - structured location component (repeatable)
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct StructuredLocation {
+pub struct Location {
     pub name: String,                   // REQUIRED - Location name (e.g., "Insider Bar", "Parking Lot B")
     pub location_type: Option<String>,  // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, etc.
     pub address: Option<String>,        // Street address (e.g., "Münstergasse 20, 8001 Zürich")
@@ -81,7 +81,7 @@ pub struct PubkyAppCalendar {
     pub image_uri: Option<String>,         // Calendar image/logo URI (pubky:// or https)
 
     // RFC 5545 - Calendar Metadata
-    pub timezone: Option<String>,          // IANA timezone ID (e.g., "Europe/Zurich")
+    pub timezone: String,                  // REQUIRED - IANA timezone ID (e.g., "Europe/Zurich")
     pub description: Option<String>,       // Calendar description
     pub url: Option<String>,               // Calendar homepage/details URL
     pub created: Option<i64>,              // Creation timestamp (Unix microseconds)
@@ -114,7 +114,7 @@ pub struct PubkyAppEvent {
     // RFC 5545 - Location
     pub location: Option<String>,       // Primary location text (RFC 5545 LOCATION property)
     pub geo: Option<String>,            // Geographic coordinates "lat;lon" (RFC 5545 GEO property)
-    pub structured_locations: Option<Vec<StructuredLocation>>, // RFC 9073 VLOCATION components (repeatable)
+    pub structured_locations: Option<Vec<Location>>, // RFC 9073 VLOCATION components (repeatable)
     
     // RFC 7986 - Event Publishing Extensions
     pub image_uri: Option<String>,      // Event image/banner URI
@@ -234,7 +234,7 @@ require type updates rather than just jCal property additions.
 #### 3. `structured_locations` (RFC 9073 VLOCATION components)
 
 - **Purpose**: Repeatable structured location data for complex events
-- **Format**: Array of `StructuredLocation` objects
+- **Format**: Array of `Location` objects
 - **Fields per location**:
   - `name`: Location name (REQUIRED)
   - `location_type`: ARRIVAL, DEPARTURE, PARKING, etc.
@@ -301,262 +301,6 @@ Our approach **implements RFC 9073 VLOCATION** with pragmatic simplifications:
 - No UID needed (locations bound to event)
 - LOCATION-TYPE as field in struct
 - **Fully convertible** to/from RFC 9073 VLOCATION components
-
----
-
-## Type Definitions
-
-### PubkyAppCalendar
-
-```rust
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PubkyAppCalendar {
-    // RFC 7986 - Calendar Properties
-    pub name: String,                      // REQUIRED - calendar display name
-    pub color: Option<String>,             // CSS color value (hex format)
-    pub image_uri: Option<String>,         // Calendar image/logo URI (pubky:// or https)
-    
-    // RFC 5545 - Calendar Metadata
-    pub timezone: String,                  // REQUIRED - IANA timezone ID (e.g., "Europe/Zurich")
-    pub description: Option<String>,       // Calendar description
-    pub url: Option<String>,               // Calendar homepage URL
-    pub created: Option<i64>,              // Creation timestamp (Unix microseconds)
-    
-    // Pubky Extensions
-    pub x_pubky_admins: Option<Vec<String>>,  // Pubky URIs of admin users
-}
-```
-
-### PubkyAppEvent
-
-```rust
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PubkyAppEvent {
-    // RFC 5545 - Core Event Properties (REQUIRED)
-    pub uid: String,                       // Globally unique identifier
-    pub dtstamp: i64,                      // Creation timestamp (microseconds)
-    pub dtstart: i64,                      // Start timestamp (microseconds)
-    pub summary: String,                   // Event title/subject
-    
-    // RFC 5545 - Time & Duration
-    pub dtend: Option<i64>,                // End timestamp (mutually exclusive with duration)
-    pub duration: Option<String>,          // RFC 5545 duration format (e.g., "PT1H30M")
-    pub dtstart_tzid: Option<String>,      // IANA timezone for dtstart (e.g., "Europe/Zurich")
-    pub dtend_tzid: Option<String>,        // IANA timezone for dtend
-    
-    // RFC 5545 - Event Details
-    pub description: Option<String>,       // Plain text description
-    pub status: Option<String>,            // CONFIRMED | TENTATIVE | CANCELLED
-    pub organizer: Option<Organizer>,      // Event organizer (name from profile.json)
-    pub categories: Option<Vec<String>>,   // Event categories/tags
-    
-    // RFC 5545 - Location
-    pub location: Option<String>,          // Primary location text (RFC 5545 LOCATION property)
-    pub geo: Option<String>,               // Geographic coordinates "lat;lon" (RFC 5545 GEO property)
-    pub structured_locations: Option<Vec<StructuredLocation>>, // RFC 9073 VLOCATION components (repeatable)
-    
-    // RFC 7986 - Event Publishing Extensions
-    pub image_uri: Option<String>,         // Event image/banner URI
-    pub url: Option<String>,               // Event homepage/details link
-    pub conference: Option<Conference>,    // Video/audio conference details
-    
-    // RFC 5545 - Change Management
-    pub sequence: Option<i32>,             // Version number (increment on modifications)
-    pub last_modified: Option<i64>,        // Last modification timestamp
-    pub created: Option<i64>,              // Creation timestamp
-    
-    // RFC 5545 - Recurrence
-    pub rrule: Option<String>,             // Recurrence rule (RFC 5545 format)
-    pub rdate: Option<Vec<String>>,        // Additional recurrence dates
-    pub exdate: Option<Vec<String>>,       // Excluded recurrence dates
-    pub recurrence_id: Option<i64>,        // Identifies specific recurrence instance
-    
-    // RFC 9073 - Rich Content
-    pub styled_description: Option<StyledDescription>, // Formatted description with metadata
-
-    // Pubky Extensions
-    pub x_pubky_calendar_uris: Option<Vec<String>>, // URIs of calendars containing this event
-    pub x_pubky_rsvp_access: Option<String>, // "PUBLIC" (default) | "INVITE_ONLY" | "CONFIRMED_ONLY"
-}
-```
-
-### Supporting Types
-
-```rust
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Organizer {
-    pub uri: String,                       // REQUIRED Pubky URI (name fetched from profile.json)
-    pub sent_by: Option<String>,           // Pubky URI of delegate sending on behalf
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Conference {
-    pub uri: String,                       // REQUIRED - Conference URL (Zoom, Meet, etc.)
-    pub label: Option<String>,             // Human-readable label
-    pub features: Option<Vec<String>>,     // Conference features: AUDIO, VIDEO, CHAT, SCREEN, etc.
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct StructuredLocation {
-    pub name: String,                      // REQUIRED - Location name
-    pub location_type: Option<String>,     // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, etc.
-    pub address: Option<String>,           // Street address
-    pub uri: Option<String>,               // Reference URI (OSM node, website, etc.)
-    pub description: Option<String>,       // Additional instructions
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct VLocation {
-    pub name: String,                      // REQUIRED - Location name (RFC 9073 NAME property)
-    pub location_type: Option<String>,     // RFC 9073 LOCATION-TYPE: ARRIVAL, DEPARTURE, PARKING, VIRTUAL, etc.
-    pub address: Option<String>,           // Street address
-    pub uri: Option<String>,               // Reference URI (OSM node, geo: URI, website, etc.)
-    pub description: Option<String>,       // Additional instructions or details
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct StyledDescription {
-    pub fmttype: Option<String>,           // Media type (e.g., "text/html", "text/markdown")
-    pub value: String,                     // The styled content
-    pub derived: Option<bool>,             // RFC 9073 - TRUE if auto-derived from DESCRIPTION
-    pub altrep: Option<String>,            // RFC 9073 - Alternate representation URI
-    pub language: Option<String>,          // RFC 9073 - Language tag (e.g., "en-US")
-}
-
-// Example usage:
-let event = PubkyAppEvent {
-    uid: "20231031-satoshi-001@pubky".to_string(),
-    dtstamp: 1698753600000000,
-    dtstart: 1698757200000000,
-    summary: "Bitcoin Meetup Zürich".to_string(),
-    dtend: Some(1698764400000000),
-    duration: None,
-    description: Some("Weekly Bitcoin meetup discussing Lightning Network".to_string()),
-    location: Some("Insider Bar, Zürich".to_string()),
-    geo: Some("47.366667;8.550000".to_string()),
-    structured_locations: Some(vec![VLocation {
-        name: "Insider Bar".to_string(),
-        location_type: Some("ARRIVAL".to_string()),
-        address: Some("Münstergasse 20, 8001 Zürich".to_string()),
-        uri: Some("https://www.openstreetmap.org/node/123456789".to_string()),
-        description: Some("Main venue, second floor".to_string()),
-    }]),
-    status: Some("CONFIRMED".to_string()),
-    organizer: Some(Organizer {
-        uri: "pubky://satoshi".to_string(),  // Name fetched from profile.json
-        sent_by: None,
-    }),
-    categories: Some(vec!["bitcoin".to_string(), "meetup".to_string()]),
-    created: Some(1698753600000000),
-    sequence: Some(0),
-    last_modified: Some(1698753600000000),
-    url: Some("https://bitcoin.ch/meetup/zurich".to_string()),
-    dtstart_tzid: Some("Europe/Zurich".to_string()),
-    dtend_tzid: Some("Europe/Zurich".to_string()),
-    rrule: Some("FREQ=WEEKLY;BYDAY=WE".to_string()),
-    rdate: None,
-    exdate: None,
-    recurrence_id: None,
-    image_uri: Some("pubky://satoshi/pub/pubky.app/files/0033EVENT01".to_string()),
-    conference: Some(Conference {
-        uri: "https://meet.jit.si/bitcoin-zurich".to_string(),
-        label: Some("Jitsi Meeting".to_string()),
-        features: Some(vec!["AUDIO".to_string(), "VIDEO".to_string()]),
-    }),
-    styled_description: Some(StyledDescription {
-        fmttype: Some("text/html".to_string()),
-        value: "<p>Weekly Bitcoin meetup discussing <strong>Lightning Network</strong></p>".to_string(),
-        derived: None,
-        altrep: None,
-        language: Some("en-US".to_string()),
-    }),
-    x_pubky_calendar_uris: Some(vec!["pubky://satoshi/pub/pubky.app/calendar/0033RCZXVEPNG".to_string()]),
-    x_pubky_rsvp_access: Some("PUBLIC".to_string()),
-};
-```
-
-### PubkyAppAttendee
-
-```rust
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PubkyAppAttendee {
-    // Public RSVP model: anyone can create an attendee record for any public event
-    // No invitation workflow - simple attendance tracking
-    
-    // RFC 5545 / 5546 - Attendee/RSVP Properties
-    pub attendee_uri: String,              // REQUIRED - Pubky URI of attendee (name from profile.json)
-    pub partstat: String,                  // REQUIRED - ACCEPTED | DECLINED | TENTATIVE | NEEDS-ACTION
-    pub role: Option<String>,              // REQ-PARTICIPANT | OPT-PARTICIPANT | NON-PARTICIPANT
-    pub rsvp: Option<bool>,                // true when RSVP requested/supported
-    pub delegated_from: Option<String>,    // Pubky URI (for future delegation support)
-    pub delegated_to: Option<String>,      // Pubky URI (for future delegation support)
-    
-    // RFC 5545 - Recurrence Support
-    pub recurrence_id: Option<i64>,        // For recurring events, specifies which instance this RSVP applies to
-
-    // Pubky Linkage
-    pub x_pubky_event_uri: String,         // REQUIRED - URI of the event this RSVP belongs to
-}
-
-// Example usage - RSVP to all instances:
-let attendee_all = PubkyAppAttendee {
-    attendee_uri: "pubky://alice".to_string(),
-    partstat: "ACCEPTED".to_string(),
-    role: Some("REQ-PARTICIPANT".to_string()),
-    rsvp: None,
-    delegated_from: None,
-    delegated_to: None,
-    recurrence_id: None, // No recurrence_id = applies to all instances
-    x_pubky_event_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
-};
-
-// Example usage - RSVP to specific instance:
-let attendee_specific = PubkyAppAttendee {
-    attendee_uri: "pubky://bob".to_string(),
-    partstat: "ACCEPTED".to_string(),
-    role: Some("REQ-PARTICIPANT".to_string()),
-    rsvp: None,
-    delegated_from: None,
-    delegated_to: None,
-    recurrence_id: Some(1699358400000000), // Specific instance timestamp
-    x_pubky_event_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
-};
-```
-
-### PubkyAppAlarm
-
-```rust
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PubkyAppAlarm {
-    // RFC 5545 - Alarm Properties
-    pub action: String,                    // REQUIRED - AUDIO | DISPLAY | EMAIL
-    pub trigger: String,                   // REQUIRED - Duration (e.g., "-PT15M") or absolute time
-    pub description: Option<String>,       // Alarm message text
-    pub summary: Option<String>,           // Email subject (for EMAIL action)
-    pub attendees: Option<Vec<String>>,    // Email recipients (for EMAIL action)
-    
-    // RFC 5545 - Repeat functionality
-    pub repeat: Option<i32>,               // Number of times to repeat alarm
-    pub duration: Option<String>,          // Interval between repeats (e.g., "PT5M")
-    pub attach: Option<String>,            // Sound file or attachment URI
-
-    // Pubky Linkage
-    pub x_pubky_target_uri: String,        // REQUIRED - Target event or calendar URI
-}
-
-// Example usage:
-let alarm = PubkyAppAlarm {
-    action: "DISPLAY".to_string(),
-    trigger: "-PT15M".to_string(), // 15 minutes before
-    description: Some("Bitcoin Meetup in 15 minutes".to_string()),
-    summary: None,
-    attendees: None,
-    repeat: Some(2),               // Repeat 2 more times
-    duration: Some("PT5M".to_string()), // Every 5 minutes
-    attach: None,
-    x_pubky_target_uri: "pubky://satoshi/pub/pubky.app/event/0033SCZXVEPNG".to_string(),
-};
-```
 
 ---
 

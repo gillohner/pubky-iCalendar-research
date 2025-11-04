@@ -344,7 +344,7 @@ Our approach **implements RFC 9073 VLOCATION** with pragmatic simplifications:
 | `image_uri`             | RFC 7986   | String            | Event image                | Visual representation                                |
 | `conference`            | RFC 7986   | Conference        | Conference details         | Video call/meeting info                              |
 | `location`              | RFC 5545   | String            | Location text              | Primary location description                         |
-| `structured_locations`  | RFC 9073   | Vec<VLocation>    | VLOCATION components       | Repeatable locations (ARRIVAL, PARKING, etc.)        |
+| `structured_locations`  | RFC 9073   | Vec<Location>     | VLOCATION components       | Repeatable locations (ARRIVAL, PARKING, etc.)        |
 | `styled_description`    | RFC 9073   | StyledDescription | Formatted description      | HTML/Markdown content                                |
 | `x_pubky_calendar_uris` | Custom     | Vec<String>       | Calendar URIs              | Calendars containing this event                      |
 | `x_pubky_rsvp_access`   | Custom     | String            | RSVP access control        | "PUBLIC" (default) / "INVITE_ONLY"                   |
@@ -413,7 +413,7 @@ Our approach **implements RFC 9073 VLOCATION** with pragmatic simplifications:
   property).
 - `geo`: Optional. Geographic coordinates in "latitude;longitude" format (RFC
   5545 GEO property). Example: "47.366667;8.550000"
-- `structured_locations`: Optional. Array of VLocation objects (RFC 9073
+- `structured_locations`: Optional. Array of Location objects (RFC 9073
   VLOCATION components). Each object has:
   - `name`: REQUIRED - Location name (e.g., "Insider Bar")
   - `location_type`: Optional - ARRIVAL, DEPARTURE, PARKING, VIRTUAL, etc.

@@ -81,10 +81,7 @@ explicit typed fields.
         "label": "Jitsi Meeting"
     },
     "location": "Insider Bar, Zürich",
-    "geo": {
-        "lat": 47.366667,
-        "lon": 8.550000
-    },
+    "geo": "47.366667;8.550000",
     "structured_locations": [
         {
             "name": "Insider Bar",
@@ -138,10 +135,7 @@ explicit typed fields.
         "label": "Lightning Workshop Room"
     },
     "location": "Tech Hub Zürich",
-    "geo": {
-        "lat": 47.370000,
-        "lon": 8.545000
-    },
+    "geo": "47.370000;8.545000",
     "structured_locations": [
         {
             "name": "Tech Hub Zürich",
@@ -195,10 +189,7 @@ explicit typed fields.
         "label": "Conference Website"
     },
     "location": "Kongresshaus Zürich",
-    "geo": {
-        "lat": 47.366667,
-        "lon": 8.543333
-    },
+    "geo": "47.366667;8.543333",
     "structured_locations": [
         {
             "name": "Kongresshaus Zürich",
@@ -411,10 +402,7 @@ explicit typed fields.
     "image_uri": "pubky://satoshi/pub/pubky.app/files/0033EVENT01",
     "conference": null,
     "location": "Insider Bar",
-    "geo": {
-        "lat": 47.366667,
-        "lon": 8.550000
-    },
+    "geo": "47.366667;8.550000",
     "structured_locations": [
         {
             "name": "Insider Bar",
@@ -467,10 +455,7 @@ explicit typed fields.
     "image_uri": "pubky://satoshi/pub/pubky.app/files/0033EVENT01",
     "conference": null,
     "location": "Insider Bar",
-    "geo": {
-        "lat": 47.366667,
-        "lon": 8.550000
-    },
+    "geo": "47.366667;8.550000",
     "structured_locations": [
         {
             "name": "Insider Bar",
@@ -524,10 +509,7 @@ explicit typed fields.
         "label": "Lightning Workshop Room"
     },
     "location": "Tech Hub Zürich",
-    "geo": {
-        "lat": 47.370000,
-        "lon": 8.545000
-    },
+    "geo": "47.370000;8.545000",
     "structured_locations": [
         {
             "name": "Tech Hub Zürich",
@@ -589,10 +571,7 @@ explicit typed fields.
         "label": "Conference Website"
     },
     "location": "Convention Center Zürich",
-    "geo": {
-        "lat": 47.410000,
-        "lon": 8.540000
-    },
+    "geo": "47.410000;8.540000",
     "structured_locations": [
         {
             "name": "Convention Center Zürich",

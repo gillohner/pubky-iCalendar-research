@@ -8,7 +8,6 @@
 - [Type Definitions](#type-definitions)
 - [RFC Field Tables](#rfc-field-tables)
 - [Field Validation Rules](#field-validation-rules)
-- [Homeserver Storage Structure](#homeserver-storage-structure)
 - [Graph Relationships](#graph-relationships)
 - [Future Extensions and Considerations](#future-extensions-and-considerations)
 
@@ -532,16 +531,6 @@ Pubky uses a **three-tier location approach**:
 - `attach`: Optional. URI for sound file or other attachment.
 
 ---
-
-## Homeserver Storage Structure
-
-```
-/pub/pubky.app/
-├── calendar/:calendar_id     # Calendar metadata
-├── event/:event_id           # Individual events
-├── attendee/:attendee_id     # RSVP records
-└── alarm/:alarm_id           # User reminders
-```
 
 ### ID Generation
 
